@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useWindowDimensions, TextInput } from 'react-native';
+import { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -43,11 +44,10 @@ function ShowingScreen({ navigation }) {
       { 
         movies.map((movie, index) => (
           index == 0 || index == movies.length - 1 ? // condition
-            index == 0 ?
-              <View style={[styles.container, {marginLeft: center_first_and_last_movies}]} key={index}>
+            index == 0 ? // inner condition
+              <View style={[styles.showingScreenContainer, {marginLeft: center_first_and_last_movies}]} key={index}>
                 <View style={styles.imageTouchableWrapper}>
-
-                  <TouchableOpacity style={styles.imageTouchable}>
+                  <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate(LoginScreen)}>
                     <Image
                       source={require('../assets/dummy-img.png')}
                       style={styles.imageEdge}
@@ -58,10 +58,10 @@ function ShowingScreen({ navigation }) {
                 <Text>Price per ticket: {movie.ticketPrice}</Text>
                 <Text>Showing: {movie.getFormattedDate()}</Text>
               </View>
-              :
-              <View style={[styles.container, {marginRight: center_first_and_last_movies}]} key={index}>
+              : // inner else
+              <View style={[styles.showingScreenContainer, {marginRight: center_first_and_last_movies}]} key={index}>
                 <View style={styles.imageTouchableWrapper}>
-                  <TouchableOpacity style={styles.imageTouchable}>
+                  <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate(LoginScreen)}>
                     <Image
                       source={require('../assets/dummy-img.png')}
                       style={styles.imageEdge}
@@ -73,9 +73,9 @@ function ShowingScreen({ navigation }) {
                 <Text>Showing: {movie.getFormattedDate()}</Text>
               </View>
             : // else
-            <View style={styles.container} key={index}>
+            <View style={styles.showingScreenContainer} key={index}>
               <View style={styles.imageTouchableWrapper}>
-                <TouchableOpacity style={styles.imageTouchable}>
+                <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate(LoginScreen)}>
                   <Image
                     source={require('../assets/dummy-img.png')}
                     style={styles.imageMiddle}
@@ -91,19 +91,224 @@ function ShowingScreen({ navigation }) {
   );
 }
 
+function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [hidePassword, setHidePassword] = useState(true);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in both email and password.');
+      return;
+    }
+
+    try {
+      // 1. Fetch saved user array from phone storage
+      const storedUsers = await AsyncStorage.getItem('@users_list');
+      const usersList = storedUsers ? JSON.parse(storedUsers) : [];
+
+      // 2. Validate input against stored user records
+      const matchedUser = usersList.find(
+        (user) => user.email.toLowerCase() === email.trim().toLowerCase() && user.password === password
+      );
+
+      if (matchedUser) {
+        Alert.alert('Success', `Welcome back, ${matchedUser.name}!`);
+        navigation.navigate('MainHome');
+      } else {
+        Alert.alert('Login Failed', 'Invalid email or password.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to read login data.');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Login</Text>
+
+      <Text style={styles.label}>Email</Text>
+      <TextInput
+        style={styles.field}
+        placeholder="Enter your email"
+        placeholderTextColor="gray"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+      />
+
+      <Text style={styles.label}>Password</Text>
+      <TextInput
+        secureTextEntry={hidePassword}
+		textContentType={'password'}
+        style={styles.field}
+        placeholder="Enter your password"
+        placeholderTextColor="gray"
+        value={password}
+        onChangeText={setPassword}
+      />
+	  <TouchableOpacity
+		onPress={() => setHidePassword(!hidePassword)}
+	  >
+	  	{hidePassword ? <Text>Show password</Text> : <Text>Hide password</Text> }
+	  </TouchableOpacity>
+
+      <View style={styles.box_distance}>
+        <TouchableOpacity onPress={handleLogin} style={styles.button_design}
+	  >
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Register')}
+          style={styles.button_design}>
+          <Text style={styles.buttonText}>Register New Account</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+
+function RegisterScreen({ navigation }) {
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    age: '',
+    password: '',
+    confirmPassword: '',
+    favoriteMovieCategory: '',
+  });
+
+  const [registeredUser, setRegisteredUser] = useState(null);
+  const [hidePassword, setHidePassword] = useState(true);
+
+  const handleChange = (field) => (value) => {
+    if (field === 'age') {
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setForm({ ...form, [field]: numericValue });
+    } else {
+    setForm({ ...form, [field]: value });
+  }
+  };
+
+  const handleAddUser = async () => {
+    if (!form.email || !form.password || !form.confirmPassword || !form.name || !form.age || !form.favoriteMovieCategory) {
+      Alert.alert('Error', 'Please fill in all required fields.');
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match.');
+      return;
+    }
+
+    try {
+      // 1. Fetch existing users array from storage
+      const existingData = await AsyncStorage.getItem('@users_list');
+      const usersList = existingData ? JSON.parse(existingData) : [];
+
+      const updatedList = [...usersList, form];
+      await AsyncStorage.setItem('@users_list', JSON.stringify(updatedList));
+
+      // 3. Render saved details on-screen immediately
+      setRegisteredUser(form);
+
+      // 4. Reset form
+      setForm({ 
+        name: '', 
+        email: '', 
+        age: '', 
+        password: '', 
+        confirmPassword: '', 
+        favoriteMovieCategory: '',
+      });
+
+      // 5. Wait 10 seconds (10000 ms) before switching screens
+      setTimeout(() => {
+        setRegisteredUser(null);
+        navigation.navigate('MainHome');
+      }, 10000);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save registration data.');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Register</Text>
+      <Text style={styles.label}>Name:</Text>
+      <TextInput style={styles.field} placeholder="Enter Name" value={form.name} onChangeText={handleChange('name')} />
+
+      <Text style={styles.label}>Email:</Text>
+      <TextInput style={styles.field} placeholder="Enter Email" value={form.email} onChangeText={handleChange('email')} autoCapitalize="none" />
+
+      <Text style={styles.label}>Password:</Text>
+      <TextInput style={styles.field} placeholder="Enter Password" value={form.password} onChangeText={handleChange('password')} secureTextEntry={hidePassword} />
+
+      <Text style={styles.label}>Confirm Password:</Text>
+      <TextInput
+        style={styles.field}
+        placeholder="Re-enter Password"
+        value={form.confirmPassword}
+        onChangeText={handleChange('confirmPassword')}
+        secureTextEntry={hidePassword}
+      />
+	  <TouchableOpacity
+		  onPress={() => setHidePassword(!hidePassword)}
+	  >
+	  	{hidePassword ? <Text>Show password</Text> : <Text>Hide password</Text> }
+	  </TouchableOpacity>
+
+      <Text style={styles.label}>Age:</Text>
+      <TextInput style={styles.field} placeholder="Enter Age" value={form.age} onChangeText={handleChange('age')} keyboardType="numeric" />
+
+      <Text style={styles.label}>Favorite Movie Category:</Text>
+      <TextInput style={styles.field} placeholder="Enter Favorite Movie Category" value={form.favoriteMovieCategory} onChangeText={handleChange('favoriteMovieCategory')} />
+
+      <View style={styles.box_distance}>
+        <TouchableOpacity onPress={handleAddUser} style={styles.button_design}>
+          <Text style={styles.buttonText}>Create Account</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.button_design}>
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Brief On-Screen Visual Feedback */}
+      {registeredUser && (
+        <View style={styles.successCard}>
+          <Text style={styles.successTitle}>Registration Successful!</Text>
+          <Text>Name: {registeredUser.name}</Text>
+          <Text>Email: {registeredUser.email}</Text>
+          <Text>Age: {registeredUser.age}</Text>
+          <Text>Password: {registeredUser.password}</Text>
+          <Text>Fav Category: {registeredUser.favoriteMovieCategory}</Text>
+          <Text style={styles.redirectText}>Redirecting to Main Screen...</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function CashierScreen({ navigation }) {
+
+}
+
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="ShowingScreen" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="ShowingScreen" component={ShowingScreen} />
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    // flexGrow: 1,
+  showingScreenContainer: {
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -130,4 +335,69 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    padding: 8,
+  },
+  field: {
+    width: 300,
+    borderWidth: 1,
+    borderColor: '#000',
+    padding: 4,
+    paddingHorizontal: 10,
+    marginTop: 4,
+    fontSize: 20,
+  },
+  title: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  label: {
+    marginTop: 10,
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  box_distance: {
+    marginTop: 40,
+  },
+  button_design: {
+    display: 'flex',
+    marginTop: 10,
+    borderColor: '#000',
+    borderWidth: 1,
+    padding: 5,
+    width: 280,            
+    height: 48,
+  },
+  buttonText: {
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+
+  },
+  successCard: {
+    marginTop: 20,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: 'green',
+    backgroundColor: '#e8f5e9',
+    borderRadius: 5,
+    width: 300,
+  },
+  successTitle: {
+    fontWeight: 'bold',
+    color: 'green',
+    marginBottom: 5,
+  },
+  redirectText: {
+    marginTop: 10,
+    fontStyle: 'italic',
+    color: '#555',
+  },
+
 });
