@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useWindowDimensions, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useWindowDimensions, TextInput, Platform, StatusBar, Alert } from 'react-native';
 import { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -32,10 +32,29 @@ const movies = [
 
 const Stack = createNativeStackNavigator();
 
+function Header() {
+  return (
+    <View style={styles.headerBar}>
+      <View style={styles.headerContent}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../assets/SILVER-BEAVERS-LOGO.png')}
+            style={styles.headerLogo}
+          />
+        </View>
+        <Text style={styles.headerTitle}>TICKETMASTER</Text>
+      </View>
+    </View>
+  );
+}
+
 function ShowingScreen({ navigation }) {
   const {width, height} = useWindowDimensions();
   const center_first_and_last_movies = width * -0.14; // to center first and last movies
   return (
+
+    <View style={styles.mainContainer}>
+    
     <ScrollView
       horizontal={true}
       showsHorizontalScrollIndicator={false}
@@ -88,6 +107,7 @@ function ShowingScreen({ navigation }) {
             </View>
         ))}
     </ScrollView>
+    </View>
   );
 }
 
@@ -124,6 +144,7 @@ function LoginScreen({ navigation }) {
   };
 
   return (
+    
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
 
@@ -298,14 +319,22 @@ function CashierScreen({ navigation }) {
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="ShowingScreen" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        initialRouteName="ShowingScreen"
+        screenOptions={{
+          headerShown: true,
+          header: () => <Header />,
+        }}
+      >
         <Stack.Screen name="ShowingScreen" component={ShowingScreen} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Cashier" component={CashierScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
 
 const styles = StyleSheet.create({
   showingScreenContainer: {
@@ -313,6 +342,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 100,
+    marginTop: 20,
   },
   imageMiddle: {
     width: '300',
@@ -400,4 +430,44 @@ const styles = StyleSheet.create({
     color: '#555',
   },
 
+
+ mainContainer: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  headerBar: {
+    width: '100%',
+    height: 110,
+    justifyContent: 'flex-end',
+    paddingBottom: 12,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  logoContainer: {
+    width: 70,
+    height: 35,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerLogo: {
+    width: 140,
+    height: 70,
+    resizeMode: 'contain',
+    margin: -15,
+  },
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 1.2,
+  },
 });
