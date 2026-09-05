@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, useWindowDimensions, TextInput, Platform, StatusBar, Alert } from 'react-native';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 class Movie {
@@ -48,25 +50,51 @@ function Header() {
   );
 }
 
-function ShowingScreen({ navigation }) {
-  const {width, height} = useWindowDimensions();
+function ShowingScreen({ route, navigation }) {
+  const {width} = useWindowDimensions();
   const center_first_and_last_movies = width * -0.14; // to center first and last movies
-  return (
 
+  const [currentUser, setCurrentUser] = useState(null);
+  // Checks navigation params or local storage every time ShowingScreen is focused
+  useFocusEffect(
+    useCallback(() => {
+      const loadUser = async () => {
+        // First check if user object was passed via navigation params
+        if (route.params?.user) {
+          setCurrentUser(route.params.user);
+        } else {
+          // Otherwise check active user from storage
+          const activeUserStr = await AsyncStorage.getItem('@active_user');
+          if (activeUserStr) {
+            setCurrentUser(JSON.parse(activeUserStr));
+          } else {
+            setCurrentUser(null);
+          }
+        }
+      };
+      loadUser();
+    }, [route.params?.user])
+  );
+
+  return (
     <View style={styles.mainContainer}>
-    
+       <Text style={styles.welcome_message}>
+        {currentUser
+          ? `Welcome to TicketMaster, ${currentUser.name}!`
+          : 'Welcome to TicketMaster, Guest!'}
+      </Text>
     <ScrollView
       horizontal={true}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollView}
     >
-      { 
+      {
         movies.map((movie, index) => (
           index == 0 || index == movies.length - 1 ? // condition
             index == 0 ? // inner condition
               <View style={[styles.showingScreenContainer, {marginLeft: center_first_and_last_movies}]} key={index}>
                 <View style={styles.imageTouchableWrapper}>
-                  <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate(LoginScreen)}>
+                  <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate('LoginScreen')}>
                     <Image
                       source={require('../assets/dummy-img.png')}
                       style={styles.imageEdge}
@@ -80,7 +108,7 @@ function ShowingScreen({ navigation }) {
               : // inner else
               <View style={[styles.showingScreenContainer, {marginRight: center_first_and_last_movies}]} key={index}>
                 <View style={styles.imageTouchableWrapper}>
-                  <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate(LoginScreen)}>
+                  <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate('LoginScreen')}>
                     <Image
                       source={require('../assets/dummy-img.png')}
                       style={styles.imageEdge}
@@ -94,7 +122,7 @@ function ShowingScreen({ navigation }) {
             : // else
             <View style={styles.showingScreenContainer} key={index}>
               <View style={styles.imageTouchableWrapper}>
-                <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate(LoginScreen)}>
+                <TouchableOpacity style={styles.imageTouchable} onPress={() => navigation.navigate('LoginScreen')}>
                   <Image
                     source={require('../assets/dummy-img.png')}
                     style={styles.imageMiddle}
@@ -133,19 +161,28 @@ function LoginScreen({ navigation }) {
       );
 
       if (matchedUser) {
-        Alert.alert('Success', `Welcome back, ${matchedUser.name}!`);
-        navigation.navigate('MainHome');
-      } else {
-        Alert.alert('Login Failed', 'Invalid email or password.');
-      }
+      // Save active session
+      await AsyncStorage.setItem('@active_user', JSON.stringify(matchedUser));
+      Alert.alert('Success', `Welcome back, ${matchedUser.name}!`);
+      
+      // Navigate and pass user data
+      navigation.navigate('ShowingScreen', { user: matchedUser });
+    } else {
+      Alert.alert('Login Failed', 'Invalid email or password.');
+    }
     } catch (error) {
       Alert.alert('Error', 'Failed to read login data.');
     }
   };
 
   return (
-    
     <View style={styles.container}>
+      <TouchableOpacity
+      style={styles.backButton}
+      onPress={() => navigation.goBack()}
+     >
+      <Text style={styles.backButtonText}>‹ Back</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Login</Text>
 
       <Text style={styles.label}>Email</Text>
@@ -236,6 +273,8 @@ function RegisterScreen({ navigation }) {
       setRegisteredUser(form);
 
       // 4. Reset form
+     setTimeout(() => {
+      const newUser = { ...form };
       setForm({ 
         name: '', 
         email: '', 
@@ -244,16 +283,16 @@ function RegisterScreen({ navigation }) {
         confirmPassword: '', 
         favoriteMovieCategory: '',
       });
-
-      // 5. Wait 10 seconds (10000 ms) before switching screens
-      setTimeout(() => {
-        setRegisteredUser(null);
-        navigation.navigate('MainHome');
-      }, 10000);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save registration data.');
-    }
-  };
+      setRegisteredUser(null);
+      
+      // Pass registered user object back to ShowingScreen
+      navigation.navigate('ShowingScreen', { user: newUser });
+    }, 10000);
+  } catch (error) {
+    console.log('AsyncStorage Error:', error);
+    Alert.alert('Error', 'Failed to save registration data.');
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -291,7 +330,7 @@ function RegisterScreen({ navigation }) {
         <TouchableOpacity onPress={handleAddUser} style={styles.button_design}>
           <Text style={styles.buttonText}>Create Account</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.button_design}>
+        <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')} style={styles.button_design}>
           <Text style={styles.buttonText}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -345,14 +384,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   imageMiddle: {
-    width: '300',
-    height: '450',
+    width: 300,
+    height: 450,
     justifyContent: 'center',
     resizeMode: 'contain', // 'cover', 'stretch', 'center', 'repeat'
   },
   imageEdge: {
-    width: '300',
-    height: '450',
+    width: 300,
+    height: 450,
     alignItems: 'center',
     justifyContent: 'center',
     resizeMode: 'contain', // 'cover', 'stretch', 'center', 'repeat'
@@ -382,6 +421,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 20,
   },
+  welcome_message: {
+    color: '#000000',
+    backgroundColor: '#ffffff',
+    flex: 1,
+    fontSize: 25,
+    paddingTop: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 15,
+},
   title: {
     fontSize: 40,
     fontWeight: 'bold',
@@ -395,6 +444,19 @@ const styles = StyleSheet.create({
   box_distance: {
     marginTop: 40,
   },
+  backButton: {
+  position: 'absolute',
+  top: 15,
+  left: 15,
+  padding: 8,
+  zIndex: 10,
+  },
+  backButtonText: {
+  fontSize: 25,
+  fontWeight: 'bold',
+  color: 'black',
+  },
+
   button_design: {
     display: 'flex',
     marginTop: 10,
