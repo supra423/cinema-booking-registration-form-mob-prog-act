@@ -6,23 +6,24 @@ import Header from './components/Header';
 import ShowingScreen from './screens/ShowingScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import { ShowingScreenStyles } from './Styles';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="ShowingScreen"
-        screenOptions={{
-          headerShown: true,
-          header: () => <Header />,
-        }}
-      >
-        <Stack.Screen name="ShowingScreen" component={ShowingScreen} />
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+	<NavigationContainer>
+	  <Stack.Navigator
+		initialRouteName="ShowingScreen"
+		screenOptions={{
+		  headerShown: true,
+		  header: () => <Header />,
+		}}
+	  >
+		<Stack.Screen name="ShowingScreen" component={ShowingScreen} />
+		<Stack.Screen name="LoginScreen" component={LoginScreen} />
+		<Stack.Screen name="Register" component={RegisterScreen} />
+	  </Stack.Navigator>
+	</NavigationContainer>
   );
 }
