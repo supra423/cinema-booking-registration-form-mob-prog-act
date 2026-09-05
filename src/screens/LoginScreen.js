@@ -8,6 +8,8 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LoginScreenStyles } from '../Styles';
+
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -43,18 +45,18 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={LoginScreenStyles.container}>
       <TouchableOpacity
-        style={styles.backButton}
+        style={LoginScreenStyles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <Text style={styles.backButtonText}>‹ Back</Text>
+        <Text style={LoginScreenStyles.backButtonText}>‹ Back</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Login</Text>
+      <Text style={LoginScreenStyles.title}>Login</Text>
 
-      <Text style={styles.label}>Email</Text>
+      <Text style={LoginScreenStyles.label}>Email</Text>
       <TextInput
-        style={styles.field}
+        style={LoginScreenStyles.field}
         placeholder="Enter your email"
         placeholderTextColor="gray"
         value={email}
@@ -62,11 +64,11 @@ export default function LoginScreen({ navigation }) {
         autoCapitalize="none"
       />
 
-      <Text style={styles.label}>Password</Text>
+      <Text style={LoginScreenStyles.label}>Password</Text>
       <TextInput
         secureTextEntry={hidePassword}
         textContentType={'password'}
-        style={styles.field}
+        style={LoginScreenStyles.field}
         placeholder="Enter your password"
         placeholderTextColor="gray"
         value={password}
@@ -76,76 +78,18 @@ export default function LoginScreen({ navigation }) {
         {hidePassword ? <Text>Show password</Text> : <Text>Hide password</Text>}
       </TouchableOpacity>
 
-      <View style={styles.box_distance}>
-        <TouchableOpacity onPress={handleLogin} style={styles.button_design}>
-          <Text style={styles.buttonText}>Login</Text>
+      <View style={LoginScreenStyles.box_distance}>
+        <TouchableOpacity onPress={handleLogin} style={LoginScreenStyles.button_design}>
+          <Text style={LoginScreenStyles.buttonText}>Login</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => navigation.navigate('Register')}
-          style={styles.button_design}
+          style={LoginScreenStyles.button_design}
         >
-          <Text style={styles.buttonText}>Register New Account</Text>
+          <Text style={LoginScreenStyles.buttonText}>Register New Account</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    padding: 8,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 15,
-    left: 15,
-    padding: 8,
-    zIndex: 10,
-  },
-  backButtonText: {
-    fontSize: 25,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  title: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  label: {
-    marginTop: 10,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  field: {
-    width: 300,
-    borderWidth: 1,
-    borderColor: '#000',
-    padding: 4,
-    paddingHorizontal: 10,
-    marginTop: 4,
-    fontSize: 20,
-  },
-  box_distance: {
-    marginTop: 40,
-  },
-  button_design: {
-    display: 'flex',
-    marginTop: 10,
-    borderColor: '#000',
-    borderWidth: 1,
-    padding: 5,
-    width: 280,
-    height: 48,
-  },
-  buttonText: {
-    textAlign: 'center',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-});

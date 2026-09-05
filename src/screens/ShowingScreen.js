@@ -13,6 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { movies } from '../models/movie';
+import { ShowingScreenStyles } from '../Styles';
 
 export default function ShowingScreen({ route, navigation }) {
   const { width } = useWindowDimensions();
@@ -39,17 +40,17 @@ export default function ShowingScreen({ route, navigation }) {
   );
 
   return (
-    <View style={styles.mainContainer}>
-      <Text style={styles.welcome_message}>
+    <View style={ShowingScreenStyles.mainContainer}>
+      <Text style={ShowingScreenStyles.welcomeMessage}>
         {currentUser
-          ? `Welcome to TicketMaster, ${currentUser.name}!`
-          : 'Welcome to TicketMaster, Guest!'}
+          ? `Welcome to TicketMeister, ${currentUser.name}!`
+          : 'Welcome to TicketMeister, Guest!'}
       </Text>
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollView}
-      >
+        contentContainerStyle={ShowingScreenStyles.scrollView}
+	  >
         {movies.map((movie, index) => {
           const isFirst = index === 0;
           const isLast = index === movies.length - 1;
@@ -61,16 +62,16 @@ export default function ShowingScreen({ route, navigation }) {
           return (
             <View
               key={index}
-              style={[styles.showingScreenContainer, extraStyle]}
+              style={[ShowingScreenStyles.showingScreenContainer, extraStyle]}
             >
-              <View style={styles.imageTouchableWrapper}>
+              <View style={ShowingScreenStyles.imageTouchableWrapper}>
                 <TouchableOpacity
-                  style={styles.imageTouchable}
+                  style={ShowingScreenStyles.imageTouchable}
                   onPress={() => navigation.navigate('LoginScreen')}
                 >
                   <Image
                     source={require('../../assets/dummy-img.png')}
-                    style={isFirst || isLast ? styles.imageEdge : styles.imageMiddle}
+                    style={isFirst || isLast ? ShowingScreenStyles.imageEdge : ShowingScreenStyles.imageMiddle}
                   />
                 </TouchableOpacity>
               </View>
@@ -84,46 +85,3 @@ export default function ShowingScreen({ route, navigation }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  welcome_message: {
-    color: '#000000',
-    backgroundColor: '#ffffff',
-    fontSize: 25,
-    paddingTop: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 15,
-  },
-  showingScreenContainer: {
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 100,
-    marginTop: 20,
-  },
-  imageMiddle: {
-    width: 300,
-    height: 450,
-    resizeMode: 'contain',
-  },
-  imageEdge: {
-    width: 300,
-    height: 450,
-    resizeMode: 'contain',
-  },
-  imageTouchable: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageTouchableWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scrollView: {},
-});
