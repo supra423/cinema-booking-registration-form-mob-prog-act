@@ -3,6 +3,10 @@
     "name": "cinema-booking-registration-form-mob-prog-act",
     "slug": "cinema-booking-registration-form-mob-prog-act",
     "version": "1.0.0",
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
