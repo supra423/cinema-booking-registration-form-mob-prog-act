@@ -67,6 +67,7 @@ export default function ShowingScreen({ route, navigation }) {
               <View style={ShowingScreenStyles.imageTouchableWrapper}>
                 <TouchableOpacity
                   style={ShowingScreenStyles.imageTouchable}
+			  // TODO dapat ni sya nga if naka login na ang user, adto sa CashierScreen
                   onPress={() => navigation.navigate('LoginScreen')}
                 >
                   <Image
