@@ -162,6 +162,33 @@ export const RegisterScreenStyles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#555',
   },
+  dropdownContainer: {
+    backgroundColor: '#fff',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginTop: -5,
+    marginBottom: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#eee',
+  },
+  itemText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  othersText: {
+    fontSize: 14,
+    color: '#d9534f',
+    fontWeight: 'bold',
+  },
 });
 
 export const HeaderStyles = StyleSheet.create({
