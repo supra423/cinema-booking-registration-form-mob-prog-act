@@ -7,6 +7,8 @@ export const LoginScreenStyles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
     padding: 8,
+    //Pat added
+    color: rgb(144, 51, 51),
   },
   backButton: {
     position: 'absolute',
