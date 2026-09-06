@@ -160,11 +160,6 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    style={{ flex: 1 }}
-    >
-    <View style={RegisterScreenStyles.container}>
       <ScrollView
         ref={scrollViewRef} // 4. Attach reference here
         showsVerticalScrollIndicator={true}
@@ -176,125 +171,130 @@ export default function RegisterScreen({ navigation }) {
             }
           }}
       >
-      <Text style={RegisterScreenStyles.title}>Register</Text>
-      <Text style={RegisterScreenStyles.label}>Name:</Text>
-      <TextInput
-        style={RegisterScreenStyles.field}
-        placeholder="Enter Name"
-        value={form.name}
-        onChangeText={handleChange('name')}
-      />
+		<KeyboardAvoidingView
+		behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+		style={{ flex: 1 }}
+		>
+		<View style={RegisterScreenStyles.container}>
+		  <Text style={RegisterScreenStyles.title}>Register</Text>
+		  <Text style={RegisterScreenStyles.label}>Name:</Text>
+		  <TextInput
+			style={RegisterScreenStyles.field}
+			placeholder="Enter Name"
+			value={form.name}
+			onChangeText={handleChange('name')}
+		  />
 
-      <Text style={RegisterScreenStyles.label}>Email:</Text>
-      <TextInput
-        style={RegisterScreenStyles.field}
-        placeholder="Enter Email"
-        value={form.email}
-        onChangeText={handleChange('email')}
-        autoCapitalize="none"
-      />
+		  <Text style={RegisterScreenStyles.label}>Email:</Text>
+		  <TextInput
+			style={RegisterScreenStyles.field}
+			placeholder="Enter Email"
+			value={form.email}
+			onChangeText={handleChange('email')}
+			autoCapitalize="none"
+		  />
 
-      <Text style={RegisterScreenStyles.label}>Password:</Text>
-      <TextInput
-        style={RegisterScreenStyles.field}
-        placeholder="Enter Password"
-        value={form.password}
-        onChangeText={handleChange('password')}
-        secureTextEntry={hidePassword}
-      />
+		  <Text style={RegisterScreenStyles.label}>Password:</Text>
+		  <TextInput
+			style={RegisterScreenStyles.field}
+			placeholder="Enter Password"
+			value={form.password}
+			onChangeText={handleChange('password')}
+			secureTextEntry={hidePassword}
+		  />
 
-      <Text style={RegisterScreenStyles.label}>Confirm Password:</Text>
-      <TextInput
-        style={RegisterScreenStyles.field}
-        placeholder="Re-enter Password"
-        value={form.confirmPassword}
-        onChangeText={handleChange('confirmPassword')}
-        secureTextEntry={hidePassword}
-      />
-      <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
-        {hidePassword ? <Text>Show password</Text> : <Text>Hide password</Text>}
-      </TouchableOpacity>
+		  <Text style={RegisterScreenStyles.label}>Confirm Password:</Text>
+		  <TextInput
+			style={RegisterScreenStyles.field}
+			placeholder="Re-enter Password"
+			value={form.confirmPassword}
+			onChangeText={handleChange('confirmPassword')}
+			secureTextEntry={hidePassword}
+		  />
+		  <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
+			{hidePassword ? <Text>Show password</Text> : <Text>Hide password</Text>}
+		  </TouchableOpacity>
 
-      <Text style={RegisterScreenStyles.label}>Age:</Text>
-      <TextInput
-        style={RegisterScreenStyles.field}
-        placeholder="Enter Age"
-        value={form.age}
-        onChangeText={handleChange('age')}
-        keyboardType="numeric"
-      />
+		  <Text style={RegisterScreenStyles.label}>Age:</Text>
+		  <TextInput
+			style={RegisterScreenStyles.field}
+			placeholder="Enter Age"
+			value={form.age}
+			onChangeText={handleChange('age')}
+			keyboardType="numeric"
+		  />
 
-     <Text style={RegisterScreenStyles.label}>Favorite Movie Category:</Text>
-        <View
-          ref={dropdownSectionRef}
-          collapsable={false} // Prevents Android from flattening the view layout node
-          style={{ zIndex: 1000 }}
-        >
-          <TextInput
-            style={RegisterScreenStyles.field}
-            placeholder="Type or select a category"
-            value={searchQuery}
-            onChangeText={handleCategorySearch}
-            onFocus={() => {
-                setIsDropdownOpen(true);
-                setTimeout(scrollToDropdown, 150); // Small delay to wait for keyboard display
-              }}
-            />
+		 <Text style={RegisterScreenStyles.label}>Favorite Movie Category:</Text>
+			<View
+			  ref={dropdownSectionRef}
+			  collapsable={false} // Prevents Android from flattening the view layout node
+			  style={{ zIndex: 1000 }}
+			>
+			  <TextInput
+				style={RegisterScreenStyles.field}
+				placeholder="Type or select a category"
+				value={searchQuery}
+				onChangeText={handleCategorySearch}
+				onFocus={() => {
+					setIsDropdownOpen(true);
+					setTimeout(scrollToDropdown, 150); // Small delay to wait for keyboard display
+				  }}
+				/>
 
-          {isDropdownOpen && (
-            <View style={RegisterScreenStyles.dropdownContainer}>
-              <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 150 }}>
-                {filteredCategories.length > 0 ? (
-                  filteredCategories.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={RegisterScreenStyles.dropdownItem}
-                      onPress={() => handleSelectCategory(item)}
-                    >
-                      <Text style={RegisterScreenStyles.itemText}>{item}</Text>
-                    </TouchableOpacity>
-                  ))
-                ) : (
-                  <TouchableOpacity
-                    style={RegisterScreenStyles.dropdownItem}
-                    onPress={() => handleSelectCategory(`Others (${searchQuery})`)}
-                  >
-                    <Text style={RegisterScreenStyles.othersText}>
-                      Others (Use: "{searchQuery}")
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </ScrollView>
-            </View>
-          )}
-        </View>
+			  {isDropdownOpen && (
+				<View style={RegisterScreenStyles.dropdownContainer}>
+				  <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 150 }}>
+					{filteredCategories.length > 0 ? (
+					  filteredCategories.map((item, index) => (
+						<TouchableOpacity
+						  key={index}
+						  style={RegisterScreenStyles.dropdownItem}
+						  onPress={() => handleSelectCategory(item)}
+						>
+						  <Text style={RegisterScreenStyles.itemText}>{item}</Text>
+						</TouchableOpacity>
+					  ))
+					) : (
+					  <TouchableOpacity
+						style={RegisterScreenStyles.dropdownItem}
+						onPress={() => handleSelectCategory(`Others (${searchQuery})`)}
+					  >
+						<Text style={RegisterScreenStyles.othersText}>
+						  Others (Use: "{searchQuery}")
+						</Text>
+					  </TouchableOpacity>
+					)}
+				  </ScrollView>
+				</View>
+			  )}
+			</View>
 
-      <View style={RegisterScreenStyles.box_distance}>
-        <TouchableOpacity onPress={handleAddUser} style={RegisterScreenStyles.button_design}>
-          <Text style={RegisterScreenStyles.buttonText}>Create Account</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('LoginScreen')}
-          style={RegisterScreenStyles.button_design}
-        >
-          <Text style={RegisterScreenStyles.buttonText}>Back</Text>
-        </TouchableOpacity>
-      </View>
+		  <View style={RegisterScreenStyles.box_distance}>
+			<TouchableOpacity onPress={handleAddUser} style={RegisterScreenStyles.button_design}>
+			  <Text style={RegisterScreenStyles.buttonText}>Create Account</Text>
+			</TouchableOpacity>
+			<TouchableOpacity
+			  onPress={() => navigation.navigate('LoginScreen')}
+			  style={RegisterScreenStyles.button_design}
+			>
+			  <Text style={RegisterScreenStyles.buttonText}>Back</Text>
+			</TouchableOpacity>
+		  </View>
 
-      {registeredUser && (
-        <View style={RegisterScreenStyles.successCard}>
-          <Text style={RegisterScreenStyles.successTitle}>Registration Successful!</Text>
-          <Text>Name: {registeredUser.name}</Text>
-          <Text>Email: {registeredUser.email}</Text>
-          <Text>Age: {registeredUser.age}</Text>
-          <Text>Password: {registeredUser.password}</Text>
-          <Text>Fav Category: {registeredUser.favoriteMovieCategory}</Text>
+		  {registeredUser && (
+			<View style={RegisterScreenStyles.successCard}>
+			  <Text style={RegisterScreenStyles.successTitle}>Registration Successful!</Text>
+			  <Text>Name: {registeredUser.name}</Text>
+			  <Text>Email: {registeredUser.email}</Text>
+			  <Text>Age: {registeredUser.age}</Text>
+			  <Text>Password: {registeredUser.password}</Text>
+			  <Text>Fav Category: {registeredUser.favoriteMovieCategory}</Text>
 
-          <Text style={RegisterScreenStyles.redirectText}>Redirecting to Main Screen...</Text>
-        </View>
-      )}
-      </ScrollView>
-    </View>
-    </KeyboardAvoidingView>
+			  <Text style={RegisterScreenStyles.redirectText}>Redirecting to Main Screen...</Text>
+			</View>
+		  )}
+		</View>
+		</KeyboardAvoidingView>
+    </ScrollView>
   );
 }
