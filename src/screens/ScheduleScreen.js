@@ -1,8 +1,16 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { movies } from '../models/movie';
 
 export default function ScheduleScreen({ route, navigation }) {
-  const { movie } = route.params;
+  const movie = movies.find(
+	  ({ movieId }) => movieId === route.params?.movieId
+  );
+
+  if (!movie) {
+	  return <Text>Movie not found</Text>
+  }
+
   const schedules = [movie.showSchedule];
 
   return (
@@ -13,7 +21,7 @@ export default function ScheduleScreen({ route, navigation }) {
         <TouchableOpacity
           key={schedule.toISOString()}
           style={styles.card}
-          onPress={() => navigation.navigate('TicketSelectionScreen', { movie, schedule })}
+          onPress={() => navigation.navigate('TicketSelectionScreen', { movieId: movie.movieId, schedule: schedule.toISOString(), })}
         >
           <Text style={styles.cardLabel}>Available screening</Text>
           <Text style={styles.cardTime}>{schedule.toLocaleString()}</Text>

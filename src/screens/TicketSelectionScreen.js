@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { movies } from '../models/movie';
 
 export default function TicketSelectionScreen({ route }) {
-  const { movie, schedule } = route.params;
+  // const { movie, schedule } = route.params;
+  const movie = movies.find(
+	  ({movieId}) => movieId === route.params?.movieId
+  );
+
+  const schedule = movie.showSchedule;
   const [quantity, setQuantity] = useState(1);
   const total = quantity * movie.ticketPrice;
 

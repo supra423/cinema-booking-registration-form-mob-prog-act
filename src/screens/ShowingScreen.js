@@ -69,7 +69,7 @@ export default function ShowingScreen({ route, navigation }) {
                   style={ShowingScreenStyles.imageTouchable}
 			  // TODO dapat ni sya nga if naka login na ang user, adto sa CashierScreen
                   onPress={() =>
-                    navigation.navigate(currentUser ? 'ViewMovie' : 'LoginScreen', { movie })
+                    navigation.navigate(currentUser ? 'ViewMovie' : 'LoginScreen', { movieId: movie.movieId })
                   }
                 >
                   <Image

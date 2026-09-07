@@ -1,4 +1,5 @@
 import React from 'react';
+import { movies } from '../models/movie'
 import {
   ScrollView,
   View,
@@ -10,12 +11,14 @@ import {
 import { WebView } from 'react-native-webview';
 
 export default function ViewMovie({ route, navigation }) {
-  const movie = route.params?.movie;
+  const movie = movies.find(
+	({movieId}) => movieId === route.params?.movieId
+  );
 
   if (!movie) {
     return (
       <View style={[styles.container, styles.emptyState]}>
-        <Text style={styles.bodyText}>No movie was selected.</Text>
+        <Text style={styles.bodyText}>No movie was found.</Text>
       </View>
     );
   }
@@ -41,7 +44,7 @@ export default function ViewMovie({ route, navigation }) {
       <TouchableOpacity
         style={styles.showtimesButton}
         onPress={() =>
-          navigation.navigate('ScheduleScreen', { movie })
+          navigation.navigate('ScheduleScreen', { movieId: movie.movieId, })
         }
       >
         <Text style={styles.showtimesText}>View Showtimes</Text>

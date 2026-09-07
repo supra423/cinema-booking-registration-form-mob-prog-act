@@ -36,7 +36,7 @@ export default function LoginScreen({ route, navigation }) {
         await AsyncStorage.setItem('@active_user', JSON.stringify(matchedUser));
         Alert.alert('Success', `Welcome back, ${matchedUser.name}!`);
         navigation.navigate('ViewMovie', {
-          movie: route.params?.movie,
+          movieId: route.params?.movieId,
           user: matchedUser,
         });
       } else {
