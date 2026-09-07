@@ -6,7 +6,11 @@ import Header from './components/Header';
 import ShowingScreen from './screens/ShowingScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import ViewMovie from './screens/ViewMovie';
+import ScheduleScreen from './screens/ScheduleScreen';
+import TicketSelectionScreen from './screens/TicketSelectionScreen';
 import { ShowingScreenStyles } from './Styles';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +29,9 @@ export default function App() {
 		  presses on a movie*/}
 		<Stack.Screen name="ShowingScreen" component={ShowingScreen} />
 		<Stack.Screen name="LoginScreen" component={LoginScreen} />
+		<Stack.Screen name="ViewMovie" component={ViewMovie} />
+		<Stack.Screen name="ScheduleScreen" component={ScheduleScreen} />
+		<Stack.Screen name="TicketSelectionScreen" component={TicketSelectionScreen} />
 		<Stack.Screen name="Register" component={RegisterScreen} />
 	  </Stack.Navigator>
 	</NavigationContainer>
