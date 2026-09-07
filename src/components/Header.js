@@ -12,7 +12,7 @@ export default function Header() {
               style={HeaderStyles.headerLogo}
             />
           </View>
-          <Text style={HeaderStyles.headerTitle}>TICKETMEISTER</Text>
+          <Text style={HeaderStyles.headerTitle}>SB Cinema</Text>
         </View>
 	</SafeAreaView>	
   );

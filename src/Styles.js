@@ -8,7 +8,7 @@ export const LoginScreenStyles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 8,
     //Pat added
-    color: rgb(144, 51, 51),
+    color: 'rgb(144, 51, 51)',
   },
   backButton: {
     position: 'absolute',

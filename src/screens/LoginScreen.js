@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LoginScreenStyles } from '../Styles';
 
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ route, navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [hidePassword, setHidePassword] = useState(true);
@@ -35,7 +35,10 @@ export default function LoginScreen({ navigation }) {
       if (matchedUser) {
         await AsyncStorage.setItem('@active_user', JSON.stringify(matchedUser));
         Alert.alert('Success', `Welcome back, ${matchedUser.name}!`);
-        navigation.navigate('ShowingScreen', { user: matchedUser });
+        navigation.navigate('ViewMovie', {
+          movieId: route.params?.movieId,
+          user: matchedUser,
+        });
       } else {
         Alert.alert('Login Failed', 'Invalid email or password.');
       }
