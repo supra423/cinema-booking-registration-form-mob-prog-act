@@ -78,8 +78,10 @@ export default function LoginScreen({ route, navigation }) {
         onChangeText={setPassword}
       />
       <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
-        {hidePassword ? <Text>Show password</Text> : <Text>Hide password</Text>}
-      </TouchableOpacity>
+      <Text style={{ color: '#FFFFFF' }}>
+        {hidePassword ? 'Show password' : 'Hide password'}
+      </Text>
+    </TouchableOpacity>
 
       <View style={LoginScreenStyles.box_distance}>
         <TouchableOpacity onPress={handleLogin} style={LoginScreenStyles.button_design}>
