@@ -131,6 +131,7 @@ export default function RegisterScreen({ navigation }) {
 
       const updatedList = [...usersList, form];
       await AsyncStorage.setItem('@users_list', JSON.stringify(updatedList));
+      await AsyncStorage.setItem('@active_user', JSON.stringify(form));
 
       setRegisteredUser(form);
 

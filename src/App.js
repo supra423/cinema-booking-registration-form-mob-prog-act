@@ -21,7 +21,7 @@ export default function App() {
 		initialRouteName="ShowingScreen"
 		screenOptions={{
 		  headerShown: true,
-		  header: () => <Header />,
+		  header: ({ navigation }) => <Header navigation={navigation} />,
 		}}
 	  >
 	  {/*TODO dapat naa nay CashierScreen for the payment smth2
