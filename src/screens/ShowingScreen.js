@@ -64,8 +64,8 @@ export default function ShowingScreen({ route, navigation }) {
     <View style={ShowingScreenStyles.mainContainer}>
       <Text style={ShowingScreenStyles.welcomeMessage}>
         {currentUser
-          ? `Welcome to TicketMeister, ${currentUser.name}!`
-          : 'Welcome to TicketMeister, Guest!'}
+          ? `Welcome to SB Cinema ${currentUser.name}!`
+          : 'Welcome to SB Cinema, Guest!'}
       </Text>
 
       <ScrollView
