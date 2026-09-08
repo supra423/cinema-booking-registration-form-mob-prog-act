@@ -1,14 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import {
-  StyleSheet,
   Text,
   View,
   ScrollView,
   Image,
   TouchableOpacity,
   useWindowDimensions,
-  Platform,
-  StatusBar,
+  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -21,23 +19,46 @@ export default function ShowingScreen({ route, navigation }) {
 
   const [currentUser, setCurrentUser] = useState(null);
 
+  // 1. Session check: Loads user if authenticated, defaults to null (Guest)
   useFocusEffect(
     useCallback(() => {
       const loadUser = async () => {
-        if (route.params?.user) {
-          setCurrentUser(route.params.user);
-        } else {
-          const activeUserStr = await AsyncStorage.getItem('@active_user');
-          if (activeUserStr) {
-            setCurrentUser(JSON.parse(activeUserStr));
+        try {
+          if (route.params?.user) {
+            setCurrentUser(route.params.user);
           } else {
-            setCurrentUser(null);
+            const activeUserStr = await AsyncStorage.getItem('@active_user');
+            if (activeUserStr) {
+              setCurrentUser(JSON.parse(activeUserStr));
+            } else {
+              setCurrentUser(null); // Guest state
+            }
           }
+        } catch (error) {
+          setCurrentUser(null);
         }
       };
       loadUser();
     }, [route.params?.user])
   );
+
+  // 2. Logout handler: Clears session and stays/resets on ShowingScreen as Guest
+  const handleLogout = async () => {
+    try {
+      // Clear local storage
+      await AsyncStorage.removeItem('@active_user');
+
+      // Clear local component state so UI updates immediately to "Guest"
+      setCurrentUser(null);
+
+      // Clear navigation params to prevent stale route parameters
+      navigation.setParams({ user: undefined });
+
+      Alert.alert('Logged Out', 'You are now viewing as a Guest.');
+    } catch (error) {
+      Alert.alert('Logout Error', 'Could not complete logout.');
+    }
+  };
 
   return (
     <View style={ShowingScreenStyles.mainContainer}>
@@ -46,11 +67,12 @@ export default function ShowingScreen({ route, navigation }) {
           ? `Welcome to TicketMeister, ${currentUser.name}!`
           : 'Welcome to TicketMeister, Guest!'}
       </Text>
+
       <ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={ShowingScreenStyles.scrollView}
-	  >
+      >
         {movies.map((movie, index) => {
           const isFirst = index === 0;
           const isLast = index === movies.length - 1;
@@ -61,20 +83,25 @@ export default function ShowingScreen({ route, navigation }) {
 
           return (
             <View
-              key={index}
+              key={movie.movieId || index}
               style={[ShowingScreenStyles.showingScreenContainer, extraStyle]}
             >
               <View style={ShowingScreenStyles.imageTouchableWrapper}>
                 <TouchableOpacity
                   style={ShowingScreenStyles.imageTouchable}
-			  // TODO dapat ni sya nga if naka login na ang user, adto sa CashierScreen
                   onPress={() =>
-                    navigation.navigate(currentUser ? 'ViewMovie' : 'LoginScreen', { movieId: movie.movieId })
+                    navigation.navigate(currentUser ? 'ViewMovie' : 'LoginScreen', {
+                      movieId: movie.movieId,
+                    })
                   }
                 >
                   <Image
                     source={require('../../assets/dummy-img.png')}
-                    style={isFirst || isLast ? ShowingScreenStyles.imageEdge : ShowingScreenStyles.imageMiddle}
+                    style={
+                      isFirst || isLast
+                        ? ShowingScreenStyles.imageEdge
+                        : ShowingScreenStyles.imageMiddle
+                    }
                   />
                 </TouchableOpacity>
               </View>
@@ -85,6 +112,21 @@ export default function ShowingScreen({ route, navigation }) {
           );
         })}
       </ScrollView>
+
+      {/* Conditionally render Logout vs Login button based on auth state */}
+      {currentUser ? (
+        <TouchableOpacity style={ShowingScreenStyles.button_design} onPress={handleLogout}>
+          <Text style={ShowingScreenStyles.buttonText}>Logout</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={ShowingScreenStyles.button_design}
+          onPress={() => navigation.navigate('LoginScreen')}
+        >
+          <Text style={ShowingScreenStyles.buttonText}>Login / Register</Text>
+        </TouchableOpacity>
+        
+      )}
     </View>
   );
 }
