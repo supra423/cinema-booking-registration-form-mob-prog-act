@@ -8,10 +8,11 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LoginScreenStyles } from '../Styles';
+import { router, useLocalSearchParams } from 'expo-router'; // Direct router import
+import { LoginScreenStyles } from '../src/Styles';
 
-
-export default function LoginScreen({ route, navigation }) {
+export default function LoginScreen() {
+  const params = useLocalSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [hidePassword, setHidePassword] = useState(true);
@@ -33,12 +34,28 @@ export default function LoginScreen({ route, navigation }) {
       );
 
       if (matchedUser) {
+        // 1. Store the active user session first
         await AsyncStorage.setItem('@active_user', JSON.stringify(matchedUser));
-        Alert.alert('Success', `Welcome back, ${matchedUser.name}!`);
-        navigation.navigate('ViewMovie', {
-          movieId: route.params?.movieId,
-          user: matchedUser,
-        });
+        // 2. Put the navigation INSIDE the Alert's onPress callback
+        Alert.alert(
+          'Success',
+          `Welcome back, ${matchedUser.name}!`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Navigates ONLY after the user taps OK
+                router.replace({
+                  pathname: '/',
+                  params: {
+                    movieId: params?.movieId ?? '',
+                    user: JSON.stringify(matchedUser),
+                  },
+                });
+              },
+            },
+          ]
+        );
       } else {
         Alert.alert('Login Failed', 'Invalid email or password.');
       }
@@ -51,7 +68,7 @@ export default function LoginScreen({ route, navigation }) {
     <View style={LoginScreenStyles.container}>
       <TouchableOpacity
         style={LoginScreenStyles.backButton}
-        onPress={() => navigation.goBack()}
+        onPress={() => router.back()}
       >
         <Text style={LoginScreenStyles.backButtonText}>‹ Back</Text>
       </TouchableOpacity>
@@ -78,10 +95,10 @@ export default function LoginScreen({ route, navigation }) {
         onChangeText={setPassword}
       />
       <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
-      <Text style={{ color: '#FFFFFF' }}>
-        {hidePassword ? 'Show password' : 'Hide password'}
-      </Text>
-    </TouchableOpacity>
+        <Text style={{ color: '#FFFFFF' }}>
+          {hidePassword ? 'Show password' : 'Hide password'}
+        </Text>
+      </TouchableOpacity>
 
       <View style={LoginScreenStyles.box_distance}>
         <TouchableOpacity onPress={handleLogin} style={LoginScreenStyles.button_design}>
@@ -89,7 +106,7 @@ export default function LoginScreen({ route, navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => router.push('/RegisterScreen')}
           style={LoginScreenStyles.button_design}
         >
           <Text style={LoginScreenStyles.buttonText}>Register New Account</Text>

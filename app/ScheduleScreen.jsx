@@ -1,14 +1,19 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { movies } from '../models/movie';
+import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+// Adjust relative path depending on whether this file lives in app/ or app/(app)/
+import { movies } from '../src/models/movie'; 
 
-export default function ScheduleScreen({ route, navigation }) {
+export default function ScheduleScreen() {
+  const router = useRouter();
+  const { movieId } = useLocalSearchParams();
+
   const movie = movies.find(
-	  ({ movieId }) => movieId === route.params?.movieId
+    ({ movieId: id }) => id === movieId
   );
 
   if (!movie) {
-	  return <Text>Movie not found</Text>
+    return <Text style={{ color: '#fff', padding: 20 }}>Movie not found</Text>;
   }
 
   const schedules = [movie.showSchedule];
@@ -21,7 +26,15 @@ export default function ScheduleScreen({ route, navigation }) {
         <TouchableOpacity
           key={schedule.toISOString()}
           style={styles.card}
-          onPress={() => navigation.navigate('TicketSelectionScreen', { movieId: movie.movieId, schedule: schedule.toISOString(), })}
+          onPress={() =>
+            router.push({
+              pathname: '/TicketSelectionScreen',
+              params: {
+                movieId: movie.movieId,
+                schedule: schedule.toISOString(),
+              },
+            })
+          }
         >
           <Text style={styles.cardLabel}>Available screening</Text>
           <Text style={styles.cardTime}>{schedule.toLocaleString()}</Text>

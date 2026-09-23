@@ -9,37 +9,34 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
-import { movies } from '../models/movie';
-import { ShowingScreenStyles } from '../Styles';
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
+// Adjust relative paths depending on file placement inside app/ or app/(app)/
+import { movies } from '../src/models/movie';
+import { ShowingScreenStyles } from '../src/Styles';
 
-export default function ShowingScreen({ route, navigation }) {
+export default function ShowingScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
   const { width } = useWindowDimensions();
   const center_first_and_last_movies = width * -0.14;
 
   const [currentUser, setCurrentUser] = useState(null);
 
   // 1. Session check: Loads user if authenticated, defaults to null (Guest)
+// Sync user state every time screen comes into focus
   useFocusEffect(
     useCallback(() => {
       const loadUser = async () => {
         try {
-          if (route.params?.user) {
-            setCurrentUser(route.params.user);
-          } else {
-            const activeUserStr = await AsyncStorage.getItem('@active_user');
-            if (activeUserStr) {
-              setCurrentUser(JSON.parse(activeUserStr));
-            } else {
-              setCurrentUser(null); // Guest state
-            }
-          }
-        } catch (error) {
-          setCurrentUser(null);
+          const storedUser = await AsyncStorage.getItem('@active_user');
+          setCurrentUser(storedUser ? JSON.parse(storedUser) : null);
+        } catch (e) {
+          console.error('Failed to load user', e);
         }
       };
+
       loadUser();
-    }, [route.params?.user])
+    }, [])
   );
 
   // 2. Logout handler: Clears session and stays/resets on ShowingScreen as Guest
@@ -51,10 +48,10 @@ export default function ShowingScreen({ route, navigation }) {
       // Clear local component state so UI updates immediately to "Guest"
       setCurrentUser(null);
 
-      // Clear navigation params to prevent stale route parameters
-      navigation.setParams({ user: undefined });
+      // Clear route params using Expo Router
+     router.replace('/');
 
-      Alert.alert('Logged Out', 'You are now viewing as a Guest.');
+      Alert.alert('Logged Out', 'You are now viewing as a Guest.',);
     } catch (error) {
       Alert.alert('Logout Error', 'Could not complete logout.');
     }
@@ -90,13 +87,14 @@ export default function ShowingScreen({ route, navigation }) {
                 <TouchableOpacity
                   style={ShowingScreenStyles.imageTouchable}
                   onPress={() =>
-                    navigation.navigate(currentUser ? 'ViewMovie' : 'LoginScreen', {
-                      movieId: movie.movieId,
+                    router.push({
+                      pathname: currentUser ? '/ViewMovie' : '/LoginScreen',
+                      params: { movieId: movie.movieId },
                     })
                   }
                 >
                   <Image
-                    source={require('../../assets/dummy-img.png')}
+                    source={require('../assets/dummy-img.png')}
                     style={
                       isFirst || isLast
                         ? ShowingScreenStyles.imageEdge
@@ -121,11 +119,10 @@ export default function ShowingScreen({ route, navigation }) {
       ) : (
         <TouchableOpacity
           style={ShowingScreenStyles.button_design}
-          onPress={() => navigation.navigate('LoginScreen')}
+          onPress={() => router.push('/LoginScreen')}
         >
           <Text style={ShowingScreenStyles.buttonText}>Login / Register</Text>
         </TouchableOpacity>
-        
       )}
     </View>
   );

@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { movies } from '../models/movie';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+// Adjust relative path based on your folder structure (e.g., ../../src/models/movie if inside app/(app)/)
+import { movies } from '../src/models/movie';
 
-export default function TicketSelectionScreen({ route, navigation }) {
-  const movieId = route.params?.movieId;
+export default function TicketSelectionScreen() {
+  const router = useRouter();
+  const { movieId } = useLocalSearchParams();
+
   const movie = movies.find(({ movieId: id }) => id === movieId);
 
   if (!movie) {
@@ -34,7 +38,7 @@ export default function TicketSelectionScreen({ route, navigation }) {
           [
             {
               text: 'OK',
-              onPress: () => navigation.navigate('ShowingScreen'), // Or navigate back to ViewMovie/Home
+              onPress: () => router.replace('/'), // Navigate to Home / ShowingScreen
             },
           ]
         );
@@ -48,11 +52,14 @@ export default function TicketSelectionScreen({ route, navigation }) {
             {
               text: 'Log In / Register',
               onPress: () =>
-                navigation.navigate('LoginScreen', {
-                  movieId: movie.movieId,
-                  quantity,
-                  total,
-                  movieTitle: movie.title,
+                router.push({
+                  pathname: '/LoginScreen',
+                  params: {
+                    movieId: movie.movieId,
+                    quantity: quantity.toString(),
+                    total: total.toString(),
+                    movieTitle: movie.title,
+                  },
                 }),
             },
           ]
