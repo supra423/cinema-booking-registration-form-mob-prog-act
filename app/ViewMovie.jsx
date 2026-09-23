@@ -1,5 +1,4 @@
 import React from 'react';
-import { movies } from '../models/movie'
 import {
   ScrollView,
   View,
@@ -9,10 +8,16 @@ import {
   StyleSheet,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+// Adjust relative path based on where this file is placed inside app/
+import { movies } from '../src/models/movie';
 
-export default function ViewMovie({ route, navigation }) {
+export default function ViewMovie() {
+  const router = useRouter();
+  const { movieId } = useLocalSearchParams();
+
   const movie = movies.find(
-	({movieId}) => movieId === route.params?.movieId
+    ({ movieId: id }) => id === movieId
   );
 
   if (!movie) {
@@ -44,7 +49,10 @@ export default function ViewMovie({ route, navigation }) {
       <TouchableOpacity
         style={styles.showtimesButton}
         onPress={() =>
-          navigation.navigate('ScheduleScreen', { movieId: movie.movieId, })
+          router.push({
+            pathname: '/ScheduleScreen',
+            params: { movieId: movie.movieId },
+          })
         }
       >
         <Text style={styles.showtimesText}>View Showtimes</Text>
@@ -78,6 +86,10 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 32,
+  },
+  emptyState: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     color: '#fff',

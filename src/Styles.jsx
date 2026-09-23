@@ -88,7 +88,7 @@ buttonText: {
 
 export const ShowingScreenStyles = StyleSheet.create({
   mainContainer: {
-	  flex: 1,
+      flex: 1,
   },
   welcomeMessage: {
     color: '#FFFFFF', //Kyla changed
@@ -123,7 +123,7 @@ export const ShowingScreenStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollView: {
-	  backgroundColor: '#ffffff',
+      backgroundColor: '#ffffff',
   },
 });
 

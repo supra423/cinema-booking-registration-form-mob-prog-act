@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { TouchableOpacity, View, Text, Image } from 'react-native';
+import { TouchableOpacity, View, Text, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderStyles } from '../Styles';
 
 export default function Header({ navigation }) {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useFocusEffect(
@@ -17,13 +18,31 @@ export default function Header({ navigation }) {
   );
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('@active_user');
-    setIsLoggedIn(false);
+    try {
+      // 1. Remove user session from storage
+      await AsyncStorage.removeItem('@active_user');
 
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'ShowingScreen' }],
-    });
+      // 2. Show the popup alert FIRST
+      Alert.alert(
+        'Logged Out',
+        'You are now viewing as a Guest.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // 3. Reset local header state
+              setIsLoggedIn(false);
+
+              // 4. Navigate/Reload index.jsx in Guest mode
+              router.replace('/');
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } catch (error) {
+      Alert.alert('Logout Error', 'Could not complete logout.');
+    }
   };
 
   return (
