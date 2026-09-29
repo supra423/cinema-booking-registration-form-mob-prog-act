@@ -103,27 +103,13 @@ export default function ShowingScreen() {
                   />
                 </TouchableOpacity>
               </View>
-              <Text>Title: {movie.title}</Text>
-              <Text>Price per ticket: {movie.ticketPrice}</Text>
-              <Text>Showing: {movie.getFormattedDate()}</Text>
+              <Text style={{color: "#fff"}}>Title: {movie.title}</Text>
+              <Text style={{color: "#fff"}}>Price per ticket: {movie.ticketPrice}</Text>
+              <Text style={{color: "#fff"}}>Showing: {movie.getFormattedDate()}</Text>
             </View>
           );
         })}
       </ScrollView>
-
-      {/* Conditionally render Logout vs Login button based on auth state */}
-      {currentUser ? (
-        <TouchableOpacity style={ShowingScreenStyles.button_design} onPress={handleLogout}>
-          <Text style={ShowingScreenStyles.buttonText}>Logout</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={ShowingScreenStyles.button_design}
-          onPress={() => router.push('/LoginScreen')}
-        >
-          <Text style={ShowingScreenStyles.buttonText}>Login / Register</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }

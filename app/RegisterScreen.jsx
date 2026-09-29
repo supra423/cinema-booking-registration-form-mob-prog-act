@@ -13,6 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router'; // Direct router import
 import { RegisterScreenStyles } from '../src/Styles';
+import Button from '../src/components/Button';
 
 const MOVIE_CATEGORIES = [
   'Action',
@@ -152,6 +153,7 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView
+	  style={{backgroundColor: "#101010"}}
       ref={scrollViewRef}
       showsVerticalScrollIndicator={true}
       contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
@@ -262,15 +264,21 @@ export default function RegisterScreen() {
           </View>
 
           <View style={RegisterScreenStyles.box_distance}>
-            <TouchableOpacity onPress={handleAddUser} style={RegisterScreenStyles.button_design}>
-              <Text style={RegisterScreenStyles.buttonText}>Create Account</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push('../app/index')}
-              style={RegisterScreenStyles.button_design}
-            >
-              <Text style={RegisterScreenStyles.buttonText}>Back</Text>
-            </TouchableOpacity>
+            <Button
+              title="Create Account"
+              onPress={() => {
+                handleAddUser();
+                router.push('../app/LoginScreen');
+              }}
+            />
+
+            <Button
+              title="Back"
+              onPress={() => {
+                handleAddUser();
+                router.back();
+              }}
+            />
           </View>
 
           {registeredUser && (

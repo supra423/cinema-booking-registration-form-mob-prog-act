@@ -10,6 +10,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router'; // Direct router import
 import { LoginScreenStyles } from '../src/Styles';
+import Button from '../src/components/Button'; 
 
 export default function LoginScreen() {
   const params = useLocalSearchParams();
@@ -17,9 +18,48 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [hidePassword, setHidePassword] = useState(true);
 
+  {/*ADMIN USER!!!!!! */}
+  const ADMIN_USERNAME = "admin";
+  const ADMIN_PASSWORD = "admin123";
+  const ADMIN_OBJ = {
+    name: ADMIN_USERNAME,
+    email: ADMIN_USERNAME,
+    age: 21,
+    password: ADMIN_PASSWORD,
+    confirmPassword: ADMIN_PASSWORD,
+    favoriteMovieCategory: 'Comedy',
+  }
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in both email and password.');
+      return;
+    }
+
+    {/** ADMIN USER LOGIN */}
+    if (
+      email === ADMIN_USERNAME &&
+      password === ADMIN_PASSWORD
+    ) {
+        await AsyncStorage.setItem('@active_user', JSON.stringify(ADMIN_OBJ));
+        Alert.alert(
+          'Success',
+          `Welcome back, ${ADMIN_OBJ.name}!`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.replace({
+                  pathname: '/',
+                  params: {
+                    movieId: params?.movieId ?? '',
+                    user: JSON.stringify(ADMIN_OBJ),
+                  },
+                });
+              },
+            },
+          ]
+        );
       return;
     }
 
@@ -101,16 +141,17 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       <View style={LoginScreenStyles.box_distance}>
-        <TouchableOpacity onPress={handleLogin} style={LoginScreenStyles.button_design}>
-          <Text style={LoginScreenStyles.buttonText}>Login</Text>
-        </TouchableOpacity>
+        {/** Login Button | button props */}
+        <Button
+          title="Login"
+          onPress={handleLogin}
+        />
 
-        <TouchableOpacity
+        {/** Register New Account Button | button props */}
+        <Button
+          title="Register New Account"
           onPress={() => router.push('/RegisterScreen')}
-          style={LoginScreenStyles.button_design}
-        >
-          <Text style={LoginScreenStyles.buttonText}>Register New Account</Text>
-        </TouchableOpacity>
+        />
       </View>
     </View>
   );
