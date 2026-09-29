@@ -8,6 +8,7 @@ import { HeaderStyles } from '../Styles';
 export default function Header({ navigation }) {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const pathname = usePathname();
 
   useFocusEffect(
     useCallback(() => {
@@ -62,7 +63,7 @@ export default function Header({ navigation }) {
           >
             <Text style={HeaderStyles.logoutOrLoginRegisterText}>Logout</Text>
           </TouchableOpacity>
-        ) : !isLoggedIn ? (
+        ) : !isLoggedIn && pathname === "/" ? (
           <TouchableOpacity
             style={HeaderStyles.logoutOrLoginRegisterButton}
             onPress={() => router.push('/LoginScreen')}
