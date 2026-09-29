@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { TouchableOpacity, View, Text, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderStyles } from '../Styles';
 
@@ -55,14 +55,21 @@ export default function Header({ navigation }) {
         />
         <Text style={HeaderStyles.headerTitle}>SB Cinema</Text>
 
-        {isLoggedIn && (
+        {isLoggedIn ? (
           <TouchableOpacity
-            style={HeaderStyles.logoutButton}
+            style={HeaderStyles.logoutOrLoginRegisterButton}
             onPress={handleLogout}
           >
-            <Text style={HeaderStyles.logoutText}>Logout</Text>
+            <Text style={HeaderStyles.logoutOrLoginRegisterText}>Logout</Text>
           </TouchableOpacity>
-        )}
+        ) : !isLoggedIn ? (
+          <TouchableOpacity
+            style={HeaderStyles.logoutOrLoginRegisterButton}
+            onPress={() => router.push('/LoginScreen')}
+          >
+            <Text style={HeaderStyles.logoutOrLoginRegisterText}>Login</Text>
+          </TouchableOpacity>
+		) : ( null ) }
       </View>
     </SafeAreaView>
   );

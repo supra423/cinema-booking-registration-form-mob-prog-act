@@ -153,6 +153,7 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView
+	  style={{backgroundColor: "#101010"}}
       ref={scrollViewRef}
       showsVerticalScrollIndicator={true}
       contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}

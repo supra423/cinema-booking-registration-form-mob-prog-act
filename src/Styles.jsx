@@ -99,7 +99,7 @@ export const ShowingScreenStyles = StyleSheet.create({
     padding: 10,
   },
   showingScreenContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#101010',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 100,
@@ -125,6 +125,11 @@ export const ShowingScreenStyles = StyleSheet.create({
   scrollView: {
       backgroundColor: '#ffffff',
   },
+  buttonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export const RegisterScreenStyles = StyleSheet.create({
@@ -132,7 +137,7 @@ export const RegisterScreenStyles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#101010',
     padding: 8,
   },
 
@@ -158,7 +163,7 @@ export const RegisterScreenStyles = StyleSheet.create({
   maxWidth: 360,
   backgroundColor: '#FFFFFF',
   color: '#111111',
-  borderWidth: 0,
+  borderWidth: 1,
   borderRadius: 6,
   paddingHorizontal: 14,
   paddingVertical: 12,
@@ -272,14 +277,14 @@ export const HeaderStyles = StyleSheet.create({
     letterSpacing: 1.2,
   },
 
-  logoutButton: {
+  logoutOrLoginRegisterButton: {
   backgroundColor: '#D62828',
   paddingHorizontal: 12,
   paddingVertical: 8,
   borderRadius: 5,
 },
 
-logoutText: {
+logoutOrLoginRegisterText: {
   color: '#FFFFFF',
   fontWeight: 'bold',
 },
