@@ -21,6 +21,14 @@ export default function LoginScreen() {
   {/*ADMIN USER!!!!!! */}
   const ADMIN_USERNAME = "admin";
   const ADMIN_PASSWORD = "admin123";
+  const ADMIN_OBJ = {
+    name: ADMIN_USERNAME,
+    email: ADMIN_USERNAME,
+    age: 21,
+    password: ADMIN_PASSWORD,
+    confirmPassword: ADMIN_PASSWORD,
+    favoriteMovieCategory: 'Comedy',
+  }
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -33,7 +41,25 @@ export default function LoginScreen() {
       email === ADMIN_USERNAME &&
       password === ADMIN_PASSWORD
     ) {
-      router.replace("/ScheduleScreen");
+        await AsyncStorage.setItem('@active_user', JSON.stringify(ADMIN_OBJ));
+        Alert.alert(
+          'Success',
+          `Welcome back, ${ADMIN_OBJ.name}!`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.replace({
+                  pathname: '/',
+                  params: {
+                    movieId: params?.movieId ?? '',
+                    user: JSON.stringify(ADMIN_OBJ),
+                  },
+                });
+              },
+            },
+          ]
+        );
       return;
     }
 
