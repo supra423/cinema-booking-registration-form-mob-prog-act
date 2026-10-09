@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router'; // Direct router import
 import { RegisterScreenStyles } from '../src/Styles';
 import Button from '../src/components/Button';
+import { MoveLeft } from 'lucide-react-native';
 
 const MOVIE_CATEGORIES = [
   'Action',
@@ -169,6 +170,11 @@ export default function RegisterScreen() {
         style={{ flex: 1 }}
       >
         <View style={RegisterScreenStyles.container}>
+           <TouchableOpacity style={RegisterScreenStyles.backButton} onPress={() => router.back()}>
+                 <MoveLeft
+                 size={32}
+                 color="#ffffff"/>
+             </TouchableOpacity>
           <Text style={RegisterScreenStyles.title}>Register</Text>
           
           <Text style={RegisterScreenStyles.label}>Name:</Text>
@@ -269,14 +275,6 @@ export default function RegisterScreen() {
               onPress={() => {
                 handleAddUser();
                 router.push('../app/LoginScreen');
-              }}
-            />
-
-            <Button
-              title="Back"
-              onPress={() => {
-                handleAddUser();
-                router.back();
               }}
             />
           </View>
