@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'expo-router';
 import {
   StyleSheet,
   Text,
@@ -11,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router'; // Direct router import
 import { LoginScreenStyles } from '../src/Styles';
 import Button from '../src/components/Button'; 
+import { MoveLeft } from 'lucide-react-native';
 
 export default function LoginScreen() {
   const params = useLocalSearchParams();
@@ -110,7 +112,9 @@ export default function LoginScreen() {
         style={LoginScreenStyles.backButton}
         onPress={() => router.back()}
       >
-        <Text style={LoginScreenStyles.backButtonText}>‹ Back</Text>
+       <MoveLeft
+       size={32}
+       color="#ffffff"/>
       </TouchableOpacity>
       <Text style={LoginScreenStyles.title}>Login</Text>
 
@@ -140,17 +144,15 @@ export default function LoginScreen() {
         </Text>
       </TouchableOpacity>
 
+      <Link href="/RegisterScreen" style={{marginTop: 20, color: "white"}}>
+        <Text style={{textDecorationLine: 'underline'}}>Don't have an account? Register here</Text>
+      </Link>
+
       <View style={LoginScreenStyles.box_distance}>
         {/** Login Button | button props */}
         <Button
           title="Login"
           onPress={handleLogin}
-        />
-
-        {/** Register New Account Button | button props */}
-        <Button
-          title="Register New Account"
-          onPress={() => router.push('/RegisterScreen')}
         />
       </View>
     </View>

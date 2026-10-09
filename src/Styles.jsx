@@ -140,6 +140,13 @@ export const RegisterScreenStyles = StyleSheet.create({
     backgroundColor: '#101010',
     padding: 8,
   },
+    backButton: {
+    position: 'absolute',
+    top: 15,
+    left: 15,
+    padding: 8,
+    zIndex: 10,
+  },
 
   //Kyla added
   title: {
