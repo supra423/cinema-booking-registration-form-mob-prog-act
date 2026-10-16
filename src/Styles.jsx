@@ -10,7 +10,24 @@ const colors = {
   inputBackground: '#FFFFFF',
   inputText: '#111111',
 };
-
+//CAMANNONG WAS HERE
+export const TabScreenStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#101010',
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  titleText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
 export const LoginScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
@@ -89,6 +106,7 @@ buttonText: {
 export const ShowingScreenStyles = StyleSheet.create({
   mainContainer: {
       flex: 1,
+      backgroundColor: '#101010'
   },
   welcomeMessage: {
     color: '#FFFFFF', //Kyla changed
