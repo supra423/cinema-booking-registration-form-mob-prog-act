@@ -6,7 +6,7 @@ function TabIcon({ label, color }) {
  return (
    <Text
      style={{
-       color,
+       color: 'red',
        fontSize: 18,
        fontWeight: "800",
      }}
@@ -76,6 +76,7 @@ export default function TabsLayout() {
 
      <Tabs.Screen
        name="history"
+       color="red"
        options={{
          title: "History",
          tabBarIcon: ({ color }) => (
