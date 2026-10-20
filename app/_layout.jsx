@@ -11,6 +11,8 @@ export default function RootLayout() {
         header: (props) => <Header {...props} />, 
       }}
     >
+      <Stack.Screen name="(tabs)" />
+      
       {/* Root / Initial Screen (ShowingScreen) */}
       <Stack.Screen 
         name="index" 
@@ -39,14 +41,6 @@ export default function RootLayout() {
         options={{ title: 'Select Tickets' }} 
       />
 
-      {/* Cashier / Payment Screen (Pop-up Modal) */}
-      {/* <Stack.Screen 
-        name="CashierScreen" 
-        options={{ 
-          presentation: 'modal', 
-          title: 'Payment & Checkout' 
-        }} 
-      /> */}
     </Stack>
   );
 }
