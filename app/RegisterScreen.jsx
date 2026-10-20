@@ -157,7 +157,7 @@ export default function RegisterScreen() {
 	  style={{backgroundColor: "#101010"}}
       ref={scrollViewRef}
       showsVerticalScrollIndicator={true}
-      contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: 200 }}
       keyboardShouldPersistTaps="handled"
       onContentSizeChange={() => {
         if (registeredUser) {
@@ -166,7 +166,8 @@ export default function RegisterScreen() {
       }}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         style={{ flex: 1 }}
       >
         <View style={RegisterScreenStyles.container}>
