@@ -11,6 +11,7 @@ import { WebView } from 'react-native-webview';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 // Adjust relative path based on where this file is placed inside app/
 import { movies } from '../src/models/movie';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ViewMovie() {
   const router = useRouter();
@@ -26,6 +27,11 @@ export default function ViewMovie() {
         <Text style={styles.bodyText}>No movie was found.</Text>
       </View>
     );
+  } 
+
+  //KYLA: ADDED BACK BUTTON FUNCTIONALITY
+  const handleBackPress = () => {
+    router.back();
   }
 
   const trailerUrl = `https://www.youtube.com/embed/${movie.trailerId}`;
@@ -36,6 +42,11 @@ export default function ViewMovie() {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
+      {/* KYLA: ADDED BACK BUTTON */}
+      <TouchableOpacity onPress={handleBackPress} style={{ marginBottom: 16 }}>
+        <Ionicons name="arrow-back" size={28} color="#fff" />
+      </TouchableOpacity>
+
       <Text style={styles.title}>{movie.title}</Text>
 
       <View style={styles.trailerContainer}>
@@ -83,9 +94,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#101010',
   },
+
+  
   content: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 200, // Extra padding to ensure content is scrollable and not cut off
   },
   emptyState: {
     justifyContent: 'center',
@@ -149,4 +162,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
+ 
 });

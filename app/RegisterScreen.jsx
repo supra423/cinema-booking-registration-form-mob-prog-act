@@ -142,7 +142,7 @@ export default function RegisterScreen() {
         setRegisteredUser(null);
 
         router.push({
-          pathname: '/index',
+          pathname: '/', //Kyla: changed from '../app/ShowingScreen' to '/' to navigate to the main screen
           params: { user: JSON.stringify(newUser) },
         });
       }, 10000);
@@ -275,7 +275,7 @@ export default function RegisterScreen() {
               title="Create Account"
               onPress={() => {
                 handleAddUser();
-                router.push('../app/LoginScreen');
+                //kyla: removed the navigation to main screen here, as it is now handled after a delay in handleAddUser
               }}
             />
           </View>

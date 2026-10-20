@@ -15,6 +15,7 @@ export const TabScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#101010',
+    paddingBottom: 100, // Extra padding to ensure content is scrollable and not cut off
   },
   centerContent: {
     flex: 1,
@@ -106,7 +107,8 @@ buttonText: {
 export const ShowingScreenStyles = StyleSheet.create({
   mainContainer: {
       flex: 1,
-      backgroundColor: '#101010'
+      backgroundColor: '#101010',
+      paddingBottom: 100, // Extra padding to ensure content is scrollable and not cut off
   },
   welcomeMessage: {
     color: '#FFFFFF', //Kyla changed
@@ -273,7 +275,8 @@ export const HeaderStyles = StyleSheet.create({
   headerBar: {
     width: '100%',
     justifyContent: 'flex-end',
-    paddingBottom: 12,
+    paddingBottom: -25,
+    paddingTop: 10,
     backgroundColor: '#1a1a1a',
   },
   headerContent: {
@@ -292,19 +295,22 @@ export const HeaderStyles = StyleSheet.create({
   headerLogo: {
     width: 140,
     height: 70,
+    paddingTop: 75,
     resizeMode: 'contain',
-    margin: -15,
+    margin: -40,
   },
   headerTitle: {
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 1.2,
+    marginLeft: 8,
+    marginRight: 8,
   },
 
   logoutOrLoginRegisterButton: {
   backgroundColor: '#D62828',
-  paddingHorizontal: 12,
+  paddingHorizontal: 10,
   paddingVertical: 8,
   borderRadius: 5,
 },

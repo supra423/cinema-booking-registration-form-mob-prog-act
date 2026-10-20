@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 // Adjust relative path based on your folder structure (e.g., ../../src/models/movie if inside app/(app)/)
+import { Ionicons } from '@expo/vector-icons';
 import { movies } from '../src/models/movie';
 
 export default function TicketSelectionScreen() {
@@ -70,8 +71,19 @@ export default function TicketSelectionScreen() {
     }
   };
 
+  //KYLA: ADDED BACK BUTTON FUNCTIONALITY
+  const handleBackPress = () => {
+    router.back();
+  }
+
   return (
     <View style={styles.container}>
+
+      {/* KYLA: ADDED BACK BUTTON */}
+            <TouchableOpacity onPress={handleBackPress} style={{ marginBottom: 16 }}>
+              <Ionicons name="arrow-back" size={28} color="#fff" />
+            </TouchableOpacity>
+
       <Text style={styles.title}>Select Tickets</Text>
       <Text style={styles.movie}>{movie.title}</Text>
       <Text style={styles.schedule}>

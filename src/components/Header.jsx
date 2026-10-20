@@ -46,14 +46,23 @@ export default function Header({ navigation }) {
     }
   };
 
+  // KYLA: ADDED BACK BUTTON FUNCTIONALITY IN THE BEAVER LOGO
+  const handleBacktoMain = () => {
+    router.replace('/');
+  };
+
   return (
     //Kyla added logout button style and changed the header bar style to flex-end
     <SafeAreaView style={HeaderStyles.headerBar}>
       <View style={HeaderStyles.headerContent}>
+
+    {/* KYLA: ADDED BUTTON FEATURE ON THE BEAVER LOGO */}
+        <TouchableOpacity onPress={handleBacktoMain}>
         <Image
           source={require('../../assets/SILVER-BEAVERS-LOGO.png')}
           style={HeaderStyles.headerLogo}
         />
+        </TouchableOpacity>
         <Text style={HeaderStyles.headerTitle}>SB Cinema</Text>
 
         {isLoggedIn ? (

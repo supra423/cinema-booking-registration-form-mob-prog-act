@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 // Adjust relative path depending on whether this file lives in app/ or app/(app)/
 import { movies } from '../src/models/movie'; 
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ScheduleScreen() {
   const router = useRouter();
@@ -18,8 +19,19 @@ export default function ScheduleScreen() {
 
   const schedules = [movie.showSchedule];
 
+  //KYLA: ADDED BACK BUTTON FUNCTIONALITY
+  const handleBackPress = () => {
+    router.back();
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+
+       {/* KYLA: ADDED BACK BUTTON */}
+                  <TouchableOpacity onPress={handleBackPress} style={{ marginBottom: 16 }}>
+                    <Ionicons name="arrow-back" size={28} color="#fff" />
+                  </TouchableOpacity>
+                  
       <Text style={styles.title}>Showtimes</Text>
       <Text style={styles.subtitle}>{movie.title}</Text>
       {schedules.map((schedule) => (
