@@ -157,7 +157,7 @@ export default function RegisterScreen() {
 	  style={{backgroundColor: "#101010"}}
       ref={scrollViewRef}
       showsVerticalScrollIndicator={true}
-      contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: 200 }}
       keyboardShouldPersistTaps="handled"
       onContentSizeChange={() => {
         if (registeredUser) {
