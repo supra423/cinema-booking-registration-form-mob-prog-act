@@ -94,9 +94,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#101010',
   },
+
+  
   content: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 200, // Extra padding to ensure content is scrollable and not cut off
   },
   emptyState: {
     justifyContent: 'center',
