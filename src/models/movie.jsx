@@ -51,4 +51,10 @@ export const movies = [
     cast: ['Avery Kim', 'Drew Morgan'],
     synopsis: 'When the first signal from beyond Earth arrives, a small crew must decide whether to answer.',
   }),
+  //PAT: Added more movies to the list
+  new Movie('0005', 'Movie 5', 105, new Date(2026, 7, 30, 13, 0), {
+    runtime: '1h 45m', category: 'Horror', rating: 'R',
+    cast: ['Taylor Brooks', 'Jordan Lee'],
+    synopsis: 'A group of friends must confront their deepest fears when they are trapped in a haunted location.',
+  })
 ];
