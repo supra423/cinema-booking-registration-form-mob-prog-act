@@ -142,10 +142,10 @@ export default function RegisterScreen() {
         setRegisteredUser(null);
 
         router.push({
-          pathname: '/', //Kyla: changed from '../app/ShowingScreen' to '/' to navigate to the main screen
+          pathname: '/(tabs)', //Kyla: changed from '../app/ShowingScreen' to '/' to navigate to the main screen
           params: { user: JSON.stringify(newUser) },
         });
-      }, 10000);
+      }, 5000);
     } catch (error) {
       console.log('AsyncStorage Error:', error);
       Alert.alert('Error', 'Failed to save registration data.');
@@ -283,11 +283,11 @@ export default function RegisterScreen() {
           {registeredUser && (
             <View style={RegisterScreenStyles.successCard}>
               <Text style={RegisterScreenStyles.successTitle}>Registration Successful!</Text>
-              <Text>Name: {registeredUser.name}</Text>
-              <Text>Email: {registeredUser.email}</Text>
-              <Text>Age: {registeredUser.age}</Text>
-              <Text>Password: {registeredUser.password}</Text>
-              <Text>Fav Category: {registeredUser.favoriteMovieCategory}</Text>
+              <Text style={RegisterScreenStyles.label}>Name: {registeredUser.name}</Text>
+              <Text style={RegisterScreenStyles.label}>Email: {registeredUser.email}</Text>
+              <Text style={RegisterScreenStyles.label}>Age: {registeredUser.age}</Text>
+              <Text style={RegisterScreenStyles.label}>Password: {registeredUser.password}</Text>
+              <Text style={RegisterScreenStyles.label}>Fav Category: {registeredUser.favoriteMovieCategory}</Text>
 
               <Text style={RegisterScreenStyles.redirectText}>Redirecting to Main Screen...</Text>
             </View>
