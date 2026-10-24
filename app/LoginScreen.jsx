@@ -52,7 +52,7 @@ export default function LoginScreen() {
               text: 'OK',
               onPress: () => {
                 router.replace({
-                  pathname: '/',
+                  pathname: '/(tabs)',
                   params: {
                     movieId: params?.movieId ?? '',
                     user: JSON.stringify(ADMIN_OBJ),
@@ -88,7 +88,7 @@ export default function LoginScreen() {
               onPress: () => {
                 // Navigates ONLY after the user taps OK
                 router.replace({
-                  pathname: '/',
+                  pathname: '/(tabs)', //naa man diay admin login :(
                   params: {
                     movieId: params?.movieId ?? '',
                     user: JSON.stringify(matchedUser),
