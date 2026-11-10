@@ -6,6 +6,7 @@ function TabIcon({ label, color }) {
  return (
    <Text
      style={{
+      //kyla: i changed the color of the tab icons to red for better visibility
        color: 'red',
        fontSize: 18,
        fontWeight: "800",
@@ -76,7 +77,6 @@ export default function TabsLayout() {
 
      <Tabs.Screen
        name="history"
-       color="red"
        options={{
          title: "History",
          tabBarIcon: ({ color }) => (
