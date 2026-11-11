@@ -12,23 +12,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 // Adjust relative path based on where this file is placed inside app/
-import { movies } from '../src/models/movie';
+import { loadMovies } from '../src/services/movieStorage';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ViewMovie() {
   const router = useRouter();
   const { movieId } = useLocalSearchParams();
   const [selectedCinema, setSelectedCinema] = useState(null);
+  const [movie, setMovie] = useState(null);
 
   useEffect(() => {
-    AsyncStorage.getItem('@selected_cinema').then((storedCinema) => {
+    Promise.all([
+      AsyncStorage.getItem('@selected_cinema'),
+      loadMovies(),
+    ]).then(([storedCinema, storedMovies]) => {
       setSelectedCinema(storedCinema ? JSON.parse(storedCinema) : null);
+      setMovie(storedMovies.find((item) => String(item.movieId) === String(movieId)));
     });
-  }, []);
-
-  const movie = movies.find(
-    ({ movieId: id }) => id === movieId
-  );
+  }, [movieId]);
 
   if (!movie) {
     return (

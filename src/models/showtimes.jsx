@@ -23,3 +23,23 @@ export const showtimes = Object.entries(dates).flatMap(([movieId, schedules]) =>
     ),
   },
 ]);
+
+export function getShowtime(movieId, cinemaId, fallbackDate = new Date()) {
+  const existingSchedule = showtimes.find(
+    (item) => item.movieId === String(movieId) && item.cinemaId === String(cinemaId)
+  );
+
+  if (existingSchedule) {
+    return existingSchedule;
+  }
+
+  const firstSchedule = new Date(fallbackDate);
+  const secondSchedule = new Date(firstSchedule.getTime() + 3 * 60 * 60 * 1000);
+
+  return {
+    movieId: String(movieId),
+    cinemaId: String(cinemaId),
+    ticketPrice: cinemaId === 'sb-central' ? 280 : 250,
+    schedules: [firstSchedule.toISOString(), secondSchedule.toISOString()],
+  };
+}

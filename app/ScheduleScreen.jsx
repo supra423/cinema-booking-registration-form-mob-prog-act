@@ -1,34 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 // Adjust relative path depending on whether this file lives in app/ or app/(app)/
-import { movies } from '../src/models/movie';
-import { showtimes } from '../src/models/showtimes';
+import { loadMovies } from '../src/services/movieStorage';
+import { getShowtime } from '../src/models/showtimes';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ScheduleScreen() {
   const router = useRouter();
   const { movieId, cinemaId } = useLocalSearchParams();
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const movie = movies.find(
-    ({ movieId: id }) => id === movieId
-  );
+  useEffect(() => {
+    loadMovies()
+      .then((storedMovies) => {
+        setMovie(storedMovies.find((item) => String(item.movieId) === String(movieId)));
+      })
+      .finally(() => setLoading(false));
+  }, [movieId]);
+
+  if (loading) {
+    return <Text style={{ color: '#fff', padding: 20 }}>Loading movie...</Text>;
+  }
 
   if (!movie) {
     return <Text style={{ color: '#fff', padding: 20 }}>Movie not found</Text>;
   }
 
-  const cinemaSchedule = showtimes.find(
-    (item) => item.movieId === String(movieId) && item.cinemaId === String(cinemaId)
-  );
-
-  if (!cinemaSchedule) {
+  if (!cinemaId) {
     return (
       <Text style={{ color: '#fff', padding: 20 }}>
-        No showtimes available for this cinema.
+        Select a cinema before choosing a showtime.
       </Text>
     );
   }
+
+  const cinemaSchedule = getShowtime(movieId, cinemaId, movie.showSchedule);
 
   //KYLA: ADDED BACK BUTTON FUNCTIONALITY
   const handleBackPress = () => {
