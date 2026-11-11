@@ -70,6 +70,12 @@ export default function Profile() {
           <Text style={profileStyles.value}>
             {user.favoriteMovieCategory}
           </Text>
+
+          <Button  title="Update Profile" onPress={() => router.push("/UpdateProfileScreen")} />
+          <Button  title="Log Out" onPress={async () => {
+            await AsyncStorage.removeItem("@active_user");
+            router.replace("/LoginScreen");
+          }} />
         </View>
       </View>
     </SafeAreaView>
