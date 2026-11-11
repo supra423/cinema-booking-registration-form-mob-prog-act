@@ -31,6 +31,23 @@ export default function TicketSelectionScreen() {
 
       if (activeUser) {
         const user = JSON.parse(activeUser);
+        const storedBookings = await AsyncStorage.getItem('@bookings');
+        const bookings = storedBookings ? JSON.parse(storedBookings) : [];
+
+        bookings.unshift({
+          bookingId: `${Date.now()}-${movie.movieId}`,
+          userEmail: user.email,
+          movieId: movie.movieId,
+          movieTitle: movie.title,
+          cinemaId: cinemaId || 'unknown',
+          schedule: schedule || null,
+          quantity,
+          ticketPrice: price,
+          total,
+          createdAt: new Date().toISOString(),
+        });
+
+        await AsyncStorage.setItem('@bookings', JSON.stringify(bookings));
         
         // User is logged in -> Process booking successfully
         Alert.alert(
