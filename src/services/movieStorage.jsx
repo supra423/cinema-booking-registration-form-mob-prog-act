@@ -23,7 +23,7 @@ export function normalizeMovie(item) {
   return new Movie(
     String(item.movieId ?? item.movie_id ?? item.id),
     item.title ?? item.original_title ?? item.name ?? 'Untitled Movie',
-    Number(item.ticketPrice ?? 100),
+    Number(item.ticketPrice ?? 250),
     showSchedule,
     {
       poster,

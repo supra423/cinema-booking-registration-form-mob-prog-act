@@ -1,16 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 // Adjust relative path based on your folder structure (e.g., ../../src/models/movie if inside app/(app)/)
 import { Ionicons } from '@expo/vector-icons';
-import { movies } from '../src/models/movie';
+import {
+  fetchMoviesFromApi,
+  loadMovies,
+  saveMovies,
+} from '../src/services/movieStorage';
 
 export default function TicketSelectionScreen() {
   const router = useRouter();
   const { movieId, cinemaId, schedule, ticketPrice } = useLocalSearchParams();
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
 
-  const movie = movies.find(({ movieId: id }) => id === movieId);
+  useEffect(() => {
+    const loadSelectedMovie = async () => {
+      try {
+        let storedMovies = await loadMovies();
+        let selectedMovie = storedMovies.find(
+          (item) => String(item.movieId) === String(movieId)
+        );
+
+        if (!selectedMovie) {
+          const apiMovies = await fetchMoviesFromApi();
+          selectedMovie = apiMovies.find(
+            (item) => String(item.movieId) === String(movieId)
+          );
+
+          if (apiMovies.length > 0) {
+            await saveMovies(apiMovies);
+          }
+        }
+
+        setMovie(selectedMovie || null);
+      } catch (error) {
+        setMovie(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSelectedMovie();
+  }, [movieId]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Loading movie...</Text>
+      </View>
+    );
+  }
 
   if (!movie) {
     return (
@@ -20,8 +63,7 @@ export default function TicketSelectionScreen() {
     );
   }
 
-  const [quantity, setQuantity] = useState(1);
-  const price = Number(ticketPrice || movie.ticketPrice);
+  const price = Number(ticketPrice || 250);
   const total = quantity * price;
 
   const handleBookTickets = async () => {

@@ -111,7 +111,7 @@ export default function ShowingScreen() {
                 </TouchableOpacity>
               </View>
               <Text style={{color: "#fff"}}>Title: {movie.title}</Text>
-              <Text style={{color: "#fff"}}>Price per ticket: {movie.ticketPrice}</Text>
+              <Text style={{color: "#fff"}}>Starting price: ₱{movie.ticketPrice}</Text>
               <Text style={{color: "#fff"}}>Showing: {movie.getFormattedDate()}</Text>
             </View>
           );
