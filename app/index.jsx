@@ -11,7 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 // Adjust relative paths depending on file placement inside app/ or app/(app)/
-import { movies } from '../src/models/movie';
+import { fetchMoviesFromApi, loadMovies, saveMovies } from '../src/services/movieStorage';
 import { ShowingScreenStyles } from '../src/Styles';
 
 export default function ShowingScreen() {
@@ -21,6 +21,7 @@ export default function ShowingScreen() {
   const center_first_and_last_movies = width * -0.14;
 
   const [currentUser, setCurrentUser] = useState(null);
+  const [movies, setMovies] = useState([]);
 
   // 1. Session check: Loads user if authenticated, defaults to null (Guest)
 // Sync user state every time screen comes into focus
@@ -35,6 +36,12 @@ export default function ShowingScreen() {
         }
       };
 
+        fetchMoviesFromApi()
+          .then((apiMovies) => {
+            setMovies(apiMovies);
+            return saveMovies(apiMovies);
+          })
+          .catch(() => loadMovies().then(setMovies));
       loadUser();
     }, [])
   );
@@ -94,7 +101,7 @@ export default function ShowingScreen() {
                   }
                 >
                   <Image
-                    source={require('../assets/dummy-img.png')}
+                    source={movie.poster}
                     style={
                       isFirst || isLast
                         ? ShowingScreenStyles.imageEdge

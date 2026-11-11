@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Text, View, ActivityIndicator, StyleSheet } from "react-native";
+import { Text, View, ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, router } from "expo-router";
@@ -54,6 +54,19 @@ export default function Profile() {
   return (
     <SafeAreaView style={TabScreenStyles.container}>
       <View style={TabScreenStyles.centerContent}>
+                <Image
+                    source={
+                        user.profileImage
+                        ? { uri: user.profileImage }
+                        : require("../../assets/dummy-img.png")
+                    }
+                    style={{
+                        width: 120,
+                        height: 120,
+                        borderRadius: 60,
+                        marginBottom: 20,
+                    }}
+                    />
         <Text style={TabScreenStyles.titleText}>My Profile</Text>
 
         <View style={{ width: "90%", marginTop: 24 }}>

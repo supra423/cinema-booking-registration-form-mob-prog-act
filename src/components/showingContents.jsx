@@ -8,10 +8,9 @@ import {
   useWindowDimensions 
 } from 'react-native';
 // Relative path from scr/components/ to scr/models/
-import { movies } from '../models/movie';
 import { ShowingScreenStyles } from '../Styles';
 
-export default function ShowingContent({ onMoviePress, currentUser }) {
+export default function ShowingContent({ onMoviePress, currentUser, movies = [] }) {
     const { width } = useWindowDimensions();
     const center_first_and_last_movies = width * -0.14;
 
@@ -47,7 +46,7 @@ export default function ShowingContent({ onMoviePress, currentUser }) {
                                     onPress={() => onMoviePress(movie)}
                                 >
                                     <Image
-                                        source={require('../../assets/dummy-img.png')}
+                                        source={movie.poster}
                                         style={
                                             isFirst || isLast
                                                 ? ShowingScreenStyles.imageEdge

@@ -8,7 +8,7 @@ import { movies } from '../src/models/movie';
 
 export default function TicketSelectionScreen() {
   const router = useRouter();
-  const { movieId } = useLocalSearchParams();
+  const { movieId, cinemaId, schedule, ticketPrice } = useLocalSearchParams();
 
   const movie = movies.find(({ movieId: id }) => id === movieId);
 
@@ -20,9 +20,9 @@ export default function TicketSelectionScreen() {
     );
   }
 
-  const schedule = movie.showSchedule;
   const [quantity, setQuantity] = useState(1);
-  const total = quantity * movie.ticketPrice;
+  const price = Number(ticketPrice || movie.ticketPrice);
+  const total = quantity * price;
 
   const handleBookTickets = async () => {
     try {
@@ -35,7 +35,7 @@ export default function TicketSelectionScreen() {
         // User is logged in -> Process booking successfully
         Alert.alert(
           'Booking Successful!',
-          `Thank you, ${user.name}! You booked ${quantity} ticket(s) for "${movie.title}". Total: ₱${total}.`,
+          `Thank you, ${user.name}! You booked ${quantity} ticket(s) for "${movie.title}" at ${cinemaId}. Total: ₱${total}.`,
           [
             {
               text: 'OK',
@@ -57,6 +57,9 @@ export default function TicketSelectionScreen() {
                   pathname: '/LoginScreen',
                   params: {
                     movieId: movie.movieId,
+                    cinemaId,
+                    schedule,
+                    ticketPrice: price.toString(),
                     quantity: quantity.toString(),
                     total: total.toString(),
                     movieTitle: movie.title,
@@ -87,7 +90,7 @@ export default function TicketSelectionScreen() {
       <Text style={styles.title}>Select Tickets</Text>
       <Text style={styles.movie}>{movie.title}</Text>
       <Text style={styles.schedule}>
-        {Array.isArray(schedule) ? schedule.join(', ') : schedule?.toString()}
+        {schedule ? new Date(schedule).toLocaleString() : 'No schedule selected'}
       </Text>
 
       <Text style={styles.label}>Number of tickets</Text>
@@ -107,7 +110,7 @@ export default function TicketSelectionScreen() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.price}>Price per ticket: ₱{movie.ticketPrice}</Text>
+      <Text style={styles.price}>Price per ticket: ₱{price}</Text>
       <Text style={styles.total}>Total: ₱{total}</Text>
 
       {/* Button always says "Book Tickets" */}
