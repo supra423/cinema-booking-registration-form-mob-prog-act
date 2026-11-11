@@ -84,6 +84,18 @@ export default function TabsLayout() {
          ),
        }}
      />
+     {/* Added the Profile tab- kyla */}
+
+     <Tabs.Screen
+       name="profile"
+       options={{
+         title: "Profile",
+         tabBarIcon: ({ color }) => (
+           <TabIcon label="P" color={color} />
+         ),
+       }}
+     />
    </Tabs>
+   
  );
 }
