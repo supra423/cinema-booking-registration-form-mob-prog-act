@@ -122,17 +122,16 @@ export const ShowingScreenStyles = StyleSheet.create({
     backgroundColor: '#101010',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 100,
+    paddingHorizontal: 0,
   },
   imageMiddle: {
-    width: 300,
     height: 450,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
   },
   imageEdge: {
-    width: 300,
     height: 450,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
+    paddingleft: 100,
   },
   imageTouchable: {
     alignItems: 'center',
