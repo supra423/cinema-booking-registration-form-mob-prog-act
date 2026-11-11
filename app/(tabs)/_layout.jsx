@@ -94,6 +94,7 @@ export default function TabsLayout() {
            <TabIcon label="P" color={color} />
          ),
        }}
+       
      />
    </Tabs>
    
