@@ -76,11 +76,11 @@ export default function TabsLayout() {
      />
 
      <Tabs.Screen
-       name="history"
+       name="movieCatalogue"
        options={{
-         title: "History",
+         title: "Movie Catalogue",
          tabBarIcon: ({ color }) => (
-           <TabIcon label="I" color={color} />
+           <TabIcon label="M" color={color} />
          ),
        }}
      />
