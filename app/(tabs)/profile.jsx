@@ -7,29 +7,25 @@ import { TabScreenStyles } from "../../src/Styles";
 import Button from "../../src/components/Button";
 
 export default function Profile() {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    
-    
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useFocusEffect(
-        useCallback(() => {
-            const loadUser = async () => {
-                try {
-                    const userData = await AsyncStorage.getItem("user");
-                    if (userData) {
-                        setUser(JSON.parse(userData));
-                    }
-                } catch (error) {
-                    console.error("Error fetching user data:", error);
-                } finally {
-                    setLoading(false);
-                }
-            };
+  useFocusEffect(
+    useCallback(() => {
+      const loadUser = async () => {
+        try {
+          const userData = await AsyncStorage.getItem("@active_user");
+          setUser(userData ? JSON.parse(userData) : null);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-            loadUser();
-        }, [])
-    );
+      loadUser();
+    }, [])
+  );
 
     if (loading) {
         return (
