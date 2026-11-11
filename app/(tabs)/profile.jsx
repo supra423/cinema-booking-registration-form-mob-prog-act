@@ -5,15 +5,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, router } from "expo-router";
 import { TabScreenStyles } from "../../src/Styles";
 import Button from "../../src/components/Button";
-import { loadMovies } from "../../src/services/movieStorage";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCinema, setSelectedCinema] = useState(null);
-  const [favoriteCount, setFavoriteCount] = useState(0);
   const [bookingCount, setBookingCount] = useState(0);
-  const [favoriteTitles, setFavoriteTitles] = useState([]);
   const [recentBookings, setRecentBookings] = useState([]);
 
   useFocusEffect(
@@ -22,20 +19,11 @@ export default function Profile() {
         try {
           const userData = await AsyncStorage.getItem("@active_user");
           const cinemaData = await AsyncStorage.getItem("@selected_cinema");
-          const favoriteMovies = await AsyncStorage.getItem("@favorite_movies");
           const bookings = await AsyncStorage.getItem("@bookings");
-          const favoriteIds = favoriteMovies ? JSON.parse(favoriteMovies) : [];
           const storedBookings = bookings ? JSON.parse(bookings) : [];
-          const storedMovies = await loadMovies();
           setUser(userData ? JSON.parse(userData) : null);
           setSelectedCinema(cinemaData ? JSON.parse(cinemaData) : null);
-          setFavoriteCount(favoriteIds.length);
           setBookingCount(storedBookings.length);
-          setFavoriteTitles(
-            storedMovies
-              .filter((movie) => favoriteIds.includes(String(movie.movieId)))
-              .map((movie) => movie.title)
-          );
           setRecentBookings(storedBookings.slice(0, 3));
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -100,7 +88,6 @@ export default function Profile() {
           await AsyncStorage.setItem("@users_list", JSON.stringify(remainingUsers));
           await AsyncStorage.multiRemove([
             "@active_user",
-            "@favorite_movies",
             "@bookings",
           ]);
           router.replace("/RegisterScreen");
@@ -128,10 +115,6 @@ export default function Profile() {
 
         <View style={profileStyles.statsRow}>
           <View style={profileStyles.stat}>
-            <Text style={profileStyles.statValue}>{favoriteCount}</Text>
-            <Text style={profileStyles.statLabel}>Favorites</Text>
-          </View>
-          <View style={profileStyles.stat}>
             <Text style={profileStyles.statValue}>{bookingCount}</Text>
             <Text style={profileStyles.statLabel}>Bookings</Text>
           </View>
@@ -155,13 +138,6 @@ export default function Profile() {
           <Pressable style={profileStyles.secondaryButton} onPress={() => router.push("/(tabs)/cinemas")}>
             <Text style={profileStyles.secondaryButtonText}>Choose Cinema</Text>
           </Pressable>
-        </View>
-
-        <View style={profileStyles.section}>
-          <Text style={profileStyles.sectionTitle}>Favorite movies</Text>
-          <Text style={profileStyles.value}>
-            {favoriteTitles.length > 0 ? favoriteTitles.join(' | ') : 'No favorite movies yet'}
-          </Text>
         </View>
 
         <View style={profileStyles.section}>

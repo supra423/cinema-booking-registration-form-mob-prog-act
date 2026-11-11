@@ -14,14 +14,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { fetchMoviesFromApi, loadMovies, saveMovies } from '../../src/services/movieStorage';
 
-const SMART_FILTERS = ['All', 'Favorites', 'Popular', 'Top Rated', 'Recent'];
+const SMART_FILTERS = ['All', 'Popular', 'Top Rated', 'Recent'];
 
 export default function History() {
     const router = useRouter();
     const [movies, setMovies] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [category, setCategory] = useState('All');
-    const [favoriteIds, setFavoriteIds] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useFocusEffect(
@@ -39,8 +38,6 @@ export default function History() {
                     const cachedMovies = await loadMovies();
                     if (active) setMovies(cachedMovies);
                 } finally {
-                    const storedFavorites = await AsyncStorage.getItem('@favorite_movies');
-                    if (active) setFavoriteIds(storedFavorites ? JSON.parse(storedFavorites) : []);
                     if (active) setLoading(false);
                 }
             };
@@ -78,7 +75,6 @@ export default function History() {
 
         const matchesCategory =
             category === 'All' ||
-            (category === 'Favorites' && favoriteIds.includes(String(movie.movieId))) ||
             (category === 'Popular' && popularity >= 20) ||
             (category === 'Top Rated' && rating >= 7) ||
             (category === 'Recent' && releaseYear >= currentYear - 5) ||
@@ -87,16 +83,6 @@ export default function History() {
 
         return matchesSearch && matchesCategory;
     });
-
-    const toggleFavorite = async (movieId) => {
-        const id = String(movieId);
-        const updatedIds = favoriteIds.includes(id)
-            ? favoriteIds.filter((favoriteId) => favoriteId !== id)
-            : [...favoriteIds, id];
-
-        setFavoriteIds(updatedIds);
-        await AsyncStorage.setItem('@favorite_movies', JSON.stringify(updatedIds));
-    };
 
     const openMovie = async (movie) => {
         const activeUser = await AsyncStorage.getItem('@active_user');
@@ -163,14 +149,6 @@ export default function History() {
                     renderItem={({ item }) => (
                         <Pressable style={styles.card} onPress={() => openMovie(item)}>
                             <Image source={item.poster} style={styles.poster} />
-                            <Pressable
-                                style={styles.favoriteButton}
-                                onPress={() => toggleFavorite(item.movieId)}
-                            >
-                                <Text style={styles.favoriteText}>
-                                    {favoriteIds.includes(String(item.movieId)) ? '★' : '☆'}
-                                </Text>
-                            </Pressable>
                             <Text style={styles.movieTitle} numberOfLines={2}>{item.title}</Text>
                             <Text style={styles.movieMeta} numberOfLines={1}>
                                 {item.releaseDate} | Rating {item.apiData?.vote_average ?? item.rating}
@@ -221,8 +199,6 @@ const styles = StyleSheet.create({
     column: { gap: 14 },
     card: { flex: 1, backgroundColor: '#1A1A1A', borderRadius: 6, overflow: 'hidden', paddingBottom: 10 },
     poster: { width: '100%', aspectRatio: 2 / 3, backgroundColor: '#292929' },
-    favoriteButton: { position: 'absolute', right: 8, top: 8, backgroundColor: '#101010', borderRadius: 18, paddingHorizontal: 8, paddingVertical: 4 },
-    favoriteText: { color: '#FFD166', fontSize: 24, lineHeight: 26 },
     movieTitle: { color: '#fff', fontSize: 15, fontWeight: '700', marginHorizontal: 10, marginTop: 9 },
     movieMeta: { color: '#aaa', fontSize: 11, marginHorizontal: 10, marginTop: 5 },
     centerContent: { alignItems: 'center', flex: 1, justifyContent: 'center' },
