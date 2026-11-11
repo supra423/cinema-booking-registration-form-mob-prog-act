@@ -21,6 +21,7 @@ export default function ShowingScreen() {
   const center_first_and_last_movies = width * -0.14;
 
   const [currentUser, setCurrentUser] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // 1. Session check: Loads user if authenticated, defaults to null (Guest)
 // Sync user state every time screen comes into focus
@@ -57,6 +58,12 @@ export default function ShowingScreen() {
     }
   };
 
+  const handleScroll = (event) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / width);
+    setActiveIndex(index);
+  };
+
   return (
     <View style={ShowingScreenStyles.mainContainer}>
       <Text style={ShowingScreenStyles.welcomeMessage}>
@@ -67,8 +74,12 @@ export default function ShowingScreen() {
 
       <ScrollView
         horizontal={true}
+        pagingEnabled={true} //added feature 11/11/26
+        decelerationRate="fast" //added feature 11/11/26
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={ShowingScreenStyles.scrollView}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {movies.map((movie, index) => {
           const isFirst = index === 0;
@@ -81,7 +92,7 @@ export default function ShowingScreen() {
           return (
             <View
               key={movie.movieId || index}
-              style={[ShowingScreenStyles.showingScreenContainer, extraStyle]}
+              style={[ShowingScreenStyles.showingScreenContainer, { width }]}
             >
               <View style={ShowingScreenStyles.imageTouchableWrapper}>
                 <TouchableOpacity
@@ -95,17 +106,20 @@ export default function ShowingScreen() {
                 >
                   <Image
                     source={require('../assets/dummy-img.png')}
-                    style={
+                    style={[
                       isFirst || isLast
                         ? ShowingScreenStyles.imageEdge
-                        : ShowingScreenStyles.imageMiddle
-                    }
+                        : ShowingScreenStyles.imageMiddle,
+                      { width: width }
+                    ]}
                   />
                 </TouchableOpacity>
               </View>
-              <Text style={{color: "#fff"}}>Title: {movie.title}</Text>
-              <Text style={{color: "#fff"}}>Price per ticket: {movie.ticketPrice}</Text>
-              <Text style={{color: "#fff"}}>Showing: {movie.getFormattedDate()}</Text>
+              <View style={{ paddingTop: 20, alignItems: 'center' }}>
+                <Text style={{color: "#fff"}}>Title: {movie.title}</Text>
+                <Text style={{color: "#fff"}}>Price per ticket: {movie.ticketPrice}</Text>
+                <Text style={{color: "#fff"}}>Showing: {movie.getFormattedDate()}</Text>
+              </View>
             </View>
           );
         })}
