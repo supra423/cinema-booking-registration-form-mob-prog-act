@@ -2,12 +2,13 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 // Adjust relative path depending on whether this file lives in app/ or app/(app)/
-import { movies } from '../src/models/movie'; 
+import { movies } from '../src/models/movie';
+import { showtimes } from '../src/models/showtimes';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ScheduleScreen() {
   const router = useRouter();
-  const { movieId } = useLocalSearchParams();
+  const { movieId, cinemaId } = useLocalSearchParams();
 
   const movie = movies.find(
     ({ movieId: id }) => id === movieId
@@ -17,7 +18,17 @@ export default function ScheduleScreen() {
     return <Text style={{ color: '#fff', padding: 20 }}>Movie not found</Text>;
   }
 
-  const schedules = [movie.showSchedule];
+  const cinemaSchedule = showtimes.find(
+    (item) => item.movieId === String(movieId) && item.cinemaId === String(cinemaId)
+  );
+
+  if (!cinemaSchedule) {
+    return (
+      <Text style={{ color: '#fff', padding: 20 }}>
+        No showtimes available for this cinema.
+      </Text>
+    );
+  }
 
   //KYLA: ADDED BACK BUTTON FUNCTIONALITY
   const handleBackPress = () => {
@@ -34,22 +45,24 @@ export default function ScheduleScreen() {
                   
       <Text style={styles.title}>Showtimes</Text>
       <Text style={styles.subtitle}>{movie.title}</Text>
-      {schedules.map((schedule) => (
+      {cinemaSchedule.schedules.map((schedule) => (
         <TouchableOpacity
-          key={schedule.toISOString()}
+          key={schedule}
           style={styles.card}
           onPress={() =>
             router.push({
               pathname: '/TicketSelectionScreen',
               params: {
                 movieId: movie.movieId,
-                schedule: schedule.toISOString(),
+                cinemaId: String(cinemaId),
+                schedule,
+                ticketPrice: String(cinemaSchedule.ticketPrice),
               },
             })
           }
         >
           <Text style={styles.cardLabel}>Available screening</Text>
-          <Text style={styles.cardTime}>{schedule.toLocaleString()}</Text>
+          <Text style={styles.cardTime}>{new Date(schedule).toLocaleString()}</Text>
           <Text style={styles.cardAction}>Select showtime</Text>
         </TouchableOpacity>
       ))}
