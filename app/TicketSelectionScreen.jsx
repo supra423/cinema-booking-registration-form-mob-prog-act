@@ -39,7 +39,7 @@ export default function TicketSelectionScreen() {
           [
             {
               text: 'OK',
-              onPress: () => router.replace('/'), // Navigate to Home / ShowingScreen
+              onPress: () => router.replace('/(tabs)'), // Navigate to Home / ShowingScreen
             },
           ]
         );
