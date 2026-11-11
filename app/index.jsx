@@ -122,11 +122,9 @@ export default function ShowingScreen() {
                   />
                 </TouchableOpacity>
               </View>
-              <View style={{ paddingTop: 20, alignItems: 'center' }}>
-                <Text style={{color: "#fff"}}>Title: {movie.title}</Text>
-                <Text style={{color: "#fff"}}>Price per ticket: {movie.ticketPrice}</Text>
-                <Text style={{color: "#fff"}}>Showing: {movie.getFormattedDate()}</Text>
-              </View>
+              <Text style={{color: "#fff"}}>Title: {movie.title}</Text>
+              <Text style={{color: "#fff"}}>Starting price: ₱{movie.ticketPrice}</Text>
+              <Text style={{color: "#fff"}}>Showing: {movie.getFormattedDate()}</Text>
             </View>
           );
         })}

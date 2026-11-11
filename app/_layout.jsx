@@ -40,6 +40,10 @@ export default function RootLayout() {
         name="TicketSelectionScreen" 
         options={{ title: 'Select Tickets' }} 
       />
+        <Stack.Screen
+          name="ChangePasswordScreen"
+          options={{ title: 'Change Password' }}
+        />
 
     </Stack>
   );

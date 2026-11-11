@@ -8,10 +8,11 @@ export class Movie {
     this.trailerId = details.trailerId || 'dQw4w9WgXcQ';
     this.runtime = details.runtime || '2h 00m';
     this.releaseDate = details.releaseDate || showSchedule.toLocaleDateString('en-US');
-    this.category = details.category || 'Drama';
+    this.category = details.category || 'Uncategorized';
     this.rating = details.rating || 'PG-13';
     this.cast = details.cast || ['Featured Cast'];
     this.synopsis = details.synopsis || 'Movie details will be available soon.';
+    this.apiData = details.apiData || null;
   }
 
   getFormattedDate() {
