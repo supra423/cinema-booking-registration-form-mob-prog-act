@@ -10,6 +10,9 @@ export function normalizeMovie(item) {
   );
 
   const cast = item.cast ?? item.casts?.map((actor) => actor.name);
+  const category = Array.isArray(item.genres)
+    ? item.genres.map((genre) => genre.name ?? genre).join(', ')
+    : item.category ?? item.genre ?? 'Uncategorized';
   const poster =
     item.poster && typeof item.poster === 'object'
       ? item.poster
@@ -27,10 +30,11 @@ export function normalizeMovie(item) {
       trailerId: item.trailerId,
       runtime: item.runtime,
       releaseDate: item.releaseDate ?? item.release_date,
-      category: item.category ?? item.genre,
+      category,
       rating: item.rating,
       cast,
       synopsis: item.synopsis ?? item.overview,
+      apiData: item.apiData ?? item,
     }
   );
 }
@@ -49,6 +53,7 @@ export async function saveMovies(movieList) {
     rating: movie.rating,
     cast: movie.cast,
     synopsis: movie.synopsis,
+    apiData: movie.apiData,
   }));
 
   await AsyncStorage.setItem(MOVIES_KEY, JSON.stringify(serialized));
