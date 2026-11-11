@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   View,
   Text,
@@ -7,19 +8,28 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 // Adjust relative path based on where this file is placed inside app/
-import { movies } from '../src/models/movie';
+import { loadMovies } from '../src/services/movieStorage';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ViewMovie() {
   const router = useRouter();
   const { movieId } = useLocalSearchParams();
+  const [selectedCinema, setSelectedCinema] = useState(null);
+  const [movie, setMovie] = useState(null);
 
-  const movie = movies.find(
-    ({ movieId: id }) => id === movieId
-  );
+  useEffect(() => {
+    Promise.all([
+      AsyncStorage.getItem('@selected_cinema'),
+      loadMovies(),
+    ]).then(([storedCinema, storedMovies]) => {
+      setSelectedCinema(storedCinema ? JSON.parse(storedCinema) : null);
+      setMovie(storedMovies.find((item) => String(item.movieId) === String(movieId)));
+    });
+  }, [movieId]);
 
   if (!movie) {
     return (
@@ -59,12 +69,20 @@ export default function ViewMovie() {
 
       <TouchableOpacity
         style={styles.showtimesButton}
-        onPress={() =>
+        onPress={() => {
+          if (!selectedCinema) {
+            Alert.alert('Select a cinema first', 'Choose a branch in the Cinemas tab.');
+            return;
+          }
+
           router.push({
             pathname: '/ScheduleScreen',
-            params: { movieId: movie.movieId },
-          })
-        }
+            params: {
+              movieId: movie.movieId,
+              cinemaId: selectedCinema.cinemaId,
+            },
+          });
+        }}
       >
         <Text style={styles.showtimesText}>View Showtimes</Text>
       </TouchableOpacity>
