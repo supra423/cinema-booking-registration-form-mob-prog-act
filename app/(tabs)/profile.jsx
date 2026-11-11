@@ -1,13 +1,16 @@
 import React, { useCallback, useState } from "react";
-import { Text, View, ActivityIndicator } from "react-native";
+import { Text, View, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, router } from "expo-router";
 import { TabScreenStyles } from "../../src/Styles";
+import Button from "../../src/components/Button";
 
 export default function Profile() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    
+    
 
     useFocusEffect(
         useCallback(() => {
@@ -45,6 +48,8 @@ export default function Profile() {
           <Text style={TabScreenStyles.titleText}>
             No user is currently logged in.
           </Text>
+          <Button  title="Log In" onPress={() => router.push("/LoginScreen")} />
+          <Button  title="Sign Up" onPress={() => router.push("/RegisterScreen")} />
         </View>
       </SafeAreaView>
     );
