@@ -11,16 +11,25 @@ export default function HomeTab() {
 
   useFocusEffect(
     useCallback(() => {
+      // 1. Always sync active user session
       AsyncStorage.getItem('@active_user').then(user => {
         setCurrentUser(user ? JSON.parse(user) : null);
       });
 
-      fetchMoviesFromApi()
-        .then((apiMovies) => {
-          setMovies(apiMovies);
-          return saveMovies(apiMovies);
-        })
-        .catch(() => loadMovies().then(setMovies));
+      // 2. Load from local storage FIRST so the list stays stable and instant
+      loadMovies().then((localMovies) => {
+        if (localMovies && localMovies.length > 0) {
+          setMovies(localMovies);
+        } else {
+          // Fallback to API only if local storage is completely empty
+          fetchMoviesFromApi()
+            .then((apiMovies) => {
+              setMovies(apiMovies);
+              saveMovies(apiMovies);
+            })
+            .catch((err) => console.error('Failed to load API movies:', err));
+        }
+      });
     }, [])
   );
 
@@ -32,11 +41,10 @@ export default function HomeTab() {
   };
 
   return (
-    <ShowingContent 
+    <ShowingContent
       movies={movies}
-      currentUser={currentUser} 
-      onMoviePress={handleMoviePress} 
+      currentUser={currentUser}
+      onMoviePress={handleMoviePress}
     />
   );
 }
-//CAMANNONG WAS HERE
