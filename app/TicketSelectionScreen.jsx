@@ -9,6 +9,7 @@ import {
   loadMovies,
   saveMovies,
 } from '../src/services/movieStorage';
+import { supabase } from '../lib/supabase';
 
 export default function TicketSelectionScreen() {
   const router = useRouter();
@@ -66,13 +67,36 @@ export default function TicketSelectionScreen() {
   const price = Number(ticketPrice || 250);
   const total = quantity * price;
 
-  const handleBookTickets = async () => {
+ const handleBookTickets = async () => {
     try {
       // Check if an active user exists in local storage
       const activeUser = await AsyncStorage.getItem('@active_user');
 
       if (activeUser) {
         const user = JSON.parse(activeUser);
+
+        // 1. Send booking to Supabase Cloud Database (Live Team Sync)
+        const { error: supabaseError } = await supabase
+          .from('bookings')
+          .insert([
+            {
+              user_email: user.email,
+              movie_id: movie.movieId,
+              movie_title: movie.title,
+              cinema_id: cinemaId || 'unknown',
+              schedule: schedule || null,
+              quantity: quantity,
+              ticket_price: price,
+              total_price: total,
+              status: 'confirmed',
+            },
+          ]);
+
+        if (supabaseError) {
+          console.error('Supabase booking sync error:', supabaseError.message);
+        }
+
+        // 2. Keep your existing local AsyncStorage backup
         const storedBookings = await AsyncStorage.getItem('@bookings');
         const bookings = storedBookings ? JSON.parse(storedBookings) : [];
 
@@ -90,7 +114,7 @@ export default function TicketSelectionScreen() {
         });
 
         await AsyncStorage.setItem('@bookings', JSON.stringify(bookings));
-        
+
         // User is logged in -> Process booking successfully
         Alert.alert(
           'Booking Successful!',

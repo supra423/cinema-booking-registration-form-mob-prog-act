@@ -44,7 +44,7 @@ export async function saveMovies(movieList) {
     movieId: movie.movieId,
     title: movie.title,
     ticketPrice: movie.ticketPrice,
-    showSchedule: movie.showSchedule.toISOString(),
+    showSchedule: movie.showSchedule ? new Date(movie.showSchedule).toISOString() : null,
     poster: movie.poster,
     trailerId: movie.trailerId,
     runtime: movie.runtime,

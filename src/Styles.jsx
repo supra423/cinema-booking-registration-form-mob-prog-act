@@ -124,14 +124,20 @@ export const ShowingScreenStyles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 0,
   },
-  imageMiddle: {
+ imageMiddle: {
     height: 450,
-    resizeMode: 'cover',
+    resizeMode: 'contain', // Changed to contain so local fallback fills nicely without cropping
+     paddingLeft: 100
+  },
+  imageUrl: {
+    height: 450,
+    resizeMode: 'contain', // Keeps the full Supabase poster visible across space
+     paddingLeft: 100,
   },
   imageEdge: {
     height: 450,
-    resizeMode: 'cover',
-    paddingleft: 100,
+    resizeMode: 'contain',
+    paddingLeft: 100, // Fixed camelCase syntax for React Native
   },
   imageTouchable: {
     alignItems: 'center',

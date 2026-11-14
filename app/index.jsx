@@ -13,6 +13,7 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 // Adjust relative paths depending on file placement inside app/ or app/(app)/
 import { fetchMoviesFromApi, loadMovies, saveMovies } from '../src/services/movieStorage';
 import { ShowingScreenStyles } from '../src/Styles';
+import { supabase } from '../lib/supabase';
 
 export default function ShowingScreen() {
   const router = useRouter();
@@ -26,24 +27,47 @@ export default function ShowingScreen() {
 
   // 1. Session check: Loads user if authenticated, defaults to null (Guest)
 // Sync user state every time screen comes into focus
-  useFocusEffect(
+ useFocusEffect(
     useCallback(() => {
-      const loadUser = async () => {
+      const loadUserDataAndMovies = async () => {
         try {
+          // 1. Load active user session from AsyncStorage
           const storedUser = await AsyncStorage.getItem('@active_user');
           setCurrentUser(storedUser ? JSON.parse(storedUser) : null);
+
+          // 2. Fetch movies live from Supabase
+          const { data, error } = await supabase
+            .from('movies')
+            .select('*');
+
+          if (error) {
+            console.error('Error fetching movies from Supabase:', error);
+            // Fallback to local storage cache if network fails
+            const cachedMovies = await loadMovies();
+            setMovies(cachedMovies);
+          } else {
+            // Map Supabase columns to match your existing UI property names if needed
+            const formattedMovies = data.map((item) => ({
+              movieId: item.id, // maps Supabase UUID/ID to your movieId prop
+              title: item.title,
+              genre: item.genre,
+              duration_mins: item.duration_mins,
+              poster_url: item.poster_url,
+              ticketPrice: item.ticket_price || item.ticketPrice || 150, // adjust column name as per your schema
+              // If your schema has a date string or timestamp, handle it here:
+              getFormattedDate: () => item.showing_date ? new Date(item.showing_date).toDateString() : 'Today',
+            }));
+
+            setMovies(formattedMovies);
+            // Save a local cache backup
+            await saveMovies(formattedMovies);
+          }
         } catch (e) {
-          console.error('Failed to load user', e);
+          console.error('Failed to load screen data', e);
         }
       };
 
-        fetchMoviesFromApi()
-          .then((apiMovies) => {
-            setMovies(apiMovies);
-            return saveMovies(apiMovies);
-          })
-          .catch(() => loadMovies().then(setMovies));
-      loadUser();
+      loadUserDataAndMovies();
     }, [])
   );
 
@@ -111,21 +135,29 @@ export default function ShowingScreen() {
                     })
                   }
                 >
-                  <Image
-                    source={require('../assets/dummy-img.png')}
+                 <Image
+                    // Uses Supabase remote URI if poster_url exists, otherwise uses local dummy asset
+                    source={
+                      movie.poster_url && movie.poster_url.trim().length > 0
+                        ? { uri: movie.poster_url.trim() }
+                        : require('../assets/dummy-img.png')
+                    }
                     style={[
+                      // Choose style based on position AND whether it's a Supabase URL or dummy image
                       isFirst || isLast
                         ? ShowingScreenStyles.imageEdge
-                        : ShowingScreenStyles.imageMiddle,
+                        : (movie.poster_url ? ShowingScreenStyles.imageUrl : ShowingScreenStyles.imageMiddle),
                       { width: width }
                     ]}
                   />
                 </TouchableOpacity>
               </View>
-              <Text style={{color: "#fff"}}>Title: {movie.title}</Text>
-              <Text style={{color: "#fff"}}>Starting price: ₱{movie.ticketPrice}</Text>
-              <Text style={{color: "#fff"}}>Showing: {movie.getFormattedDate()}</Text>
-            </View>
+              <View style={{ paddingTop: 20, alignItems: 'center' }}>
+                <Text style={{color: "#fff"}}>Title: {movie.title}</Text>
+                <Text style={{color: "#fff"}}>Starting price: ₱{movie.ticketPrice}</Text>
+                <Text style={{color: "#fff"}}>Showing: {movie.getFormattedDate()}</Text>
+              </View>
+              </View>
           );
         })}
       </ScrollView>
