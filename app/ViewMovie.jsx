@@ -59,6 +59,7 @@ export default function ViewMovie() {
 
       <Text style={styles.title}>{movie.title}</Text>
 
+		{/*
       <View style={styles.trailerContainer}>
         <WebView
           source={{ uri: trailerUrl }}
@@ -66,6 +67,7 @@ export default function ViewMovie() {
           allowsFullscreenVideo
         />
       </View>
+*/}
 
       <TouchableOpacity
         style={styles.showtimesButton}
