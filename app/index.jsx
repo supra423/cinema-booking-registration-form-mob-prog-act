@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function Index() {
   // This tells Expo Router to immediately open your tabs layout on startup
   return <Redirect href="/(tabs)" />;
-}
 // TODO implement admin page, implement seat selection
   const [target, setTarget] = useState(null);
 
