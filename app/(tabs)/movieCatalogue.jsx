@@ -31,6 +31,13 @@ export default function History() {
                 setLoading(true);
 
                 try {
+                    const savedMovies = await AsyncStorage.getItem('@movies_list');
+                    if (savedMovies) {
+                        const cachedMovies = await loadMovies();
+                        if (active) setMovies(cachedMovies);
+                        return;
+                    }
+
                     const apiMovies = await fetchMoviesFromApi();
                     if (active) setMovies(apiMovies);
                     await saveMovies(apiMovies);

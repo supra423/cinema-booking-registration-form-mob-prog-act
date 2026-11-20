@@ -26,6 +26,7 @@ export default function LoginScreen() {
   const ADMIN_OBJ = {
     name: ADMIN_USERNAME,
     email: ADMIN_USERNAME,
+    role: 'admin',
     age: 21,
     password: ADMIN_PASSWORD,
     confirmPassword: ADMIN_PASSWORD,
