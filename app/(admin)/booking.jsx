@@ -34,6 +34,9 @@ export default function AdminBookings() {
             <Text style={styles.meta}>
               Qty: {item.quantity} • Total: ₱{item.total}
             </Text>
+            {item.seats?.length > 0 && (
+              <Text style={styles.meta}>Seats: {item.seats.join(', ')}</Text>
+            )}
           </View>
         )}
       />

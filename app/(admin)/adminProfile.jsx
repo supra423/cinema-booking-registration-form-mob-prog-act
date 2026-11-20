@@ -192,6 +192,11 @@ export default function AdminProfile() {
                 <Text style={adminProfileStyles.activityMeta}>
                   {booking.quantity} ticket(s) | ₱{booking.total}
                 </Text>
+                {booking.seats?.length > 0 && (
+                  <Text style={adminProfileStyles.activityMeta}>
+                    Seats: {booking.seats.join(', ')}
+                  </Text>
+                )}
               </View>
             ))
           ) : (

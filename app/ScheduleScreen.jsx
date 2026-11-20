@@ -56,10 +56,6 @@ export default function ScheduleScreen() {
               (item) => String(item.cinemaId) === String(cinemaId)
             ) || null;
 
-          console.log('ScheduleScreen params:', { movieId, cinemaId });
-          console.log('Matched movieId:', matchedMovie?.movieId);
-          console.log('Custom showtimes:', storedShowtimes);
-
           setMovie(matchedMovie || null);
           setCinema(matchedCinema);
           setCustomShowtimes(Array.isArray(storedShowtimes) ? storedShowtimes : []);
@@ -104,7 +100,9 @@ export default function ScheduleScreen() {
   }
 
   const cinemaSchedule = getShowtime(movie.movieId, cinemaId, movie.showSchedule);
-  const basePrice = cinemaSchedule?.ticketPrice ?? movie.ticketPrice ?? 250;
+  const moviePrice =
+    Number(movie.ticketPrice) > 0 ? Number(movie.ticketPrice) : 250;
+  const basePrice = cinemaSchedule?.ticketPrice ?? moviePrice;
 
   const normalizedRouteMovieId = String(movieId ?? '').trim();
   const normalizedRouteCinemaId = String(cinemaId ?? '').trim();
@@ -125,11 +123,17 @@ export default function ScheduleScreen() {
 
       return sameMovie && sameCinema;
     })
-    .map((item) => ({
-      schedule: item.schedule,
-      ticketPrice: item.ticketPrice ?? basePrice,
-      isAdminSlot: true,
-    }));
+    .map((item) => {
+      const parsedItemPrice = Number(item.ticketPrice);
+      return {
+        schedule: item.schedule,
+        ticketPrice:
+          Number.isFinite(parsedItemPrice) && parsedItemPrice > 0
+            ? parsedItemPrice
+            : basePrice,
+        isAdminSlot: true,
+      };
+    });
 
   const defaultSlots = (cinemaSchedule?.schedules || []).map((schedule) => ({
     schedule,

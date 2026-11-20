@@ -58,17 +58,6 @@ export default function ViewMovie() {
       </TouchableOpacity>
 
       <Text style={styles.title}>{movie.title}</Text>
-
-		{/*
-      <View style={styles.trailerContainer}>
-        <WebView
-          source={{ uri: trailerUrl }}
-          style={styles.trailer}
-          allowsFullscreenVideo
-        />
-      </View>
-*/}
-
       <TouchableOpacity
         style={styles.showtimesButton}
         onPress={() => {
