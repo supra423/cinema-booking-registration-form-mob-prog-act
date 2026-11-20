@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
+  ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,7 +15,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { loadMovies, saveMovies } from '../../src/services/movieStorage';
+import {
+  fetchMoviesFromApi,
+  loadMovies,
+  saveMovies,
+} from '../../src/services/movieStorage';
 import { RegisterScreenStyles } from '../../src/Styles';
 
 const MOVIE_CATEGORIES = [
@@ -38,6 +44,8 @@ const MOVIE_CATEGORIES = [
 
 export default function AdminMovies() {
   const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [editingMovieId, setEditingMovieId] = useState(null);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Action');
@@ -51,10 +59,31 @@ export default function AdminMovies() {
     item.toLowerCase().includes(searchQuery.toLowerCase().trim())
   );
 
+  const loadAdminMovies = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      const apiMovies = await fetchMoviesFromApi();
+      setMovies(apiMovies);
+      await saveMovies(apiMovies);
+    } catch (error) {
+      console.error('Error loading admin movies:', error);
+      const cachedMovies = await loadMovies();
+      setMovies(cachedMovies || []);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
-      loadMovies().then((list) => setMovies(list || []));
-    }, [])
+      loadAdminMovies();
+    }, [loadAdminMovies])
   );
 
   const resetEditForm = () => {
@@ -254,36 +283,54 @@ export default function AdminMovies() {
         </View>
       )}
 
-      <FlatList
-        data={movies}
-        keyExtractor={(item) => String(item.movieId)}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: 140, gap: 10 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.movieTitle}>{item.title}</Text>
-              <Text style={styles.meta}>
-                {item.category || 'Uncategorized'} • {item.rating || 'N/A'} • ₱{item.ticketPrice ?? 250}
-              </Text>
+      {loading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color="#D62828" />
+          <Text style={styles.loadingText}>Loading movies...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={movies}
+          keyExtractor={(item) => String(item.movieId)}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 140, gap: 10 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => loadAdminMovies(true)}
+              tintColor="#D62828"
+              colors={['#D62828']}
+            />
+          }
+          ListEmptyComponent={
+            <Text style={styles.empty}>No movies available.</Text>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.movieTitle}>{item.title}</Text>
+                <Text style={styles.meta}>
+                  {item.category || 'Uncategorized'} • {item.rating || 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.actions}>
+                <Pressable
+                  style={styles.editBtn}
+                  onPress={() => handleStartEdit(item)}
+                >
+                  <Text style={styles.btnText}>Edit</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.delBtn}
+                  onPress={() => handleDeleteMovie(item.movieId)}
+                >
+                  <Text style={styles.btnText}>Delete</Text>
+                </Pressable>
+              </View>
             </View>
-            <View style={styles.actions}>
-              <Pressable
-                style={styles.editBtn}
-                onPress={() => handleStartEdit(item)}
-              >
-                <Text style={styles.btnText}>Edit</Text>
-              </Pressable>
-              <Pressable
-                style={styles.delBtn}
-                onPress={() => handleDeleteMovie(item.movieId)}
-              >
-                <Text style={styles.btnText}>Delete</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
-      />
+          )}
+        />
+      )}
 
       <Pressable style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.btnText}>Log Out Admin</Text>
@@ -352,6 +399,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
+  },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#AAA',
+    marginTop: 8,
+  },
+  empty: {
+    color: '#AAA',
+    textAlign: 'center',
+    marginTop: 24,
   },
   logoutBtn: {
     backgroundColor: '#334155',

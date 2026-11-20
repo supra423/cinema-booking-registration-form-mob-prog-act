@@ -1,6 +1,8 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
+import { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function TabIcon({ label, color }) {
  return (
@@ -19,6 +21,19 @@ function TabIcon({ label, color }) {
 
 export default function TabsLayout() {
  const insets = useSafeAreaInsets();
+ const [activeRole, setActiveRole] = useState(null);
+ const [sessionChecked, setSessionChecked] = useState(false);
+
+ useEffect(() => {
+   AsyncStorage.getItem("@active_user").then((raw) => {
+     const user = raw ? JSON.parse(raw) : null;
+     setActiveRole(user?.role || null);
+     setSessionChecked(true);
+   }).catch(() => setSessionChecked(true));
+ }, []);
+
+ if (!sessionChecked) return null;
+ if (activeRole === "admin") return <Redirect href="/(admin)" />;
 
  return (
    <Tabs
