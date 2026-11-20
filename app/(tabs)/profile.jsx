@@ -120,6 +120,19 @@ export default function Profile() {
           </View>
         </View>
 
+        {user.role === "admin" && (
+          <View style={profileStyles.section}>
+            <Text style={profileStyles.sectionTitle}>Admin tools</Text>
+            <Text style={profileStyles.value}>Manage the movies in the catalogue.</Text>
+            <Pressable
+              style={profileStyles.secondaryButton}
+              onPress={() => router.push("/AdminMovieManagementScreen")}
+            >
+              <Text style={profileStyles.secondaryButtonText}>Manage Movies</Text>
+            </Pressable>
+          </View>
+        )}
+
         <View style={profileStyles.section}>
           <Text style={profileStyles.sectionTitle}>Account details</Text>
           <Text style={profileStyles.label}>Name</Text>

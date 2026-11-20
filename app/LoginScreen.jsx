@@ -18,6 +18,19 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [hidePassword, setHidePassword] = useState(true);
 
+  {/*ADMIN USER!!!!!! */}
+  const ADMIN_USERNAME = "admin";
+  const ADMIN_PASSWORD = "admin123";
+  const ADMIN_OBJ = {
+    name: ADMIN_USERNAME,
+    email: ADMIN_USERNAME,
+    role: 'admin',
+    age: 21,
+    password: ADMIN_PASSWORD,
+    confirmPassword: ADMIN_PASSWORD,
+    favoriteMovieCategory: 'Comedy',
+  }
+
   const handleLogin = async () => {
     if (!email.trim() || !password) {
       Alert.alert('Error', 'Please fill in both email and password.');
