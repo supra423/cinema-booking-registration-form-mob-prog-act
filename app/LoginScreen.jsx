@@ -11,7 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router'; // Direct router import
 import { LoginScreenStyles } from '../src/Styles';
-import Button from '../src/components/Button'; 
+import Button from '../src/components/Button';
 import { MoveLeft } from 'lucide-react-native';
 
 export default function LoginScreen() {
@@ -38,6 +38,13 @@ export default function LoginScreen() {
       return;
     }
 
+    // Determine target destination (if they clicked a movie before logging in, go to ViewMovie, else tabs)
+    const targetPath = params?.movieId ? '/ViewMovie' : '/(tabs)';
+    const targetParams = {
+      movieId: params?.movieId ?? '',
+      user: JSON.stringify(ADMIN_OBJ), // or matchedUser below
+    };
+
     {/** ADMIN USER LOGIN */}
     if (
       email === ADMIN_USERNAME &&
@@ -52,7 +59,7 @@ export default function LoginScreen() {
               text: 'OK',
               onPress: () => {
                 router.replace({
-                  pathname: '/(tabs)',
+                  pathname: targetPath,
                   params: {
                     movieId: params?.movieId ?? '',
                     user: JSON.stringify(ADMIN_OBJ),
@@ -76,9 +83,7 @@ export default function LoginScreen() {
       );
 
       if (matchedUser) {
-        // 1. Store the active user session first
         await AsyncStorage.setItem('@active_user', JSON.stringify(matchedUser));
-        // 2. Put the navigation INSIDE the Alert's onPress callback
         Alert.alert(
           'Success',
           `Welcome back, ${matchedUser.name}!`,
@@ -86,9 +91,8 @@ export default function LoginScreen() {
             {
               text: 'OK',
               onPress: () => {
-                // Navigates ONLY after the user taps OK
                 router.replace({
-                  pathname: '/(tabs)', //naa man diay admin login :(
+                  pathname: params?.movieId ? '/ViewMovie' : '/(tabs)',
                   params: {
                     movieId: params?.movieId ?? '',
                     user: JSON.stringify(matchedUser),
@@ -105,12 +109,11 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Failed to read login data.');
     }
   };
-
   return (
     <View style={LoginScreenStyles.container}>
       <TouchableOpacity
         style={LoginScreenStyles.backButton}
-        onPress={() => router.back()}
+        onPress={() => router.replace('/(tabs)')}
       >
        <MoveLeft
        size={32}
