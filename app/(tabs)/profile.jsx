@@ -23,8 +23,12 @@ export default function Profile() {
           const storedBookings = bookings ? JSON.parse(bookings) : [];
           setUser(userData ? JSON.parse(userData) : null);
           setSelectedCinema(cinemaData ? JSON.parse(cinemaData) : null);
-          setBookingCount(storedBookings.length);
-          setRecentBookings(storedBookings.slice(0, 3));
+          const parsedUser = userData ? JSON.parse(userData) : null;
+          const userBookings = parsedUser
+            ? storedBookings.filter((booking) => booking.userEmail === parsedUser.email)
+            : [];
+          setBookingCount(userBookings.length);
+          setRecentBookings(userBookings.slice(0, 3));
         } catch (error) {
           console.error("Error fetching user data:", error);
         } finally {
@@ -148,6 +152,11 @@ export default function Profile() {
               <Text style={profileStyles.activityMeta}>
                 {booking.quantity} ticket(s) | ₱{booking.total}
               </Text>
+              {booking.seats?.length > 0 && (
+                <Text style={profileStyles.activityMeta}>
+                  Seats: {booking.seats.join(', ')}
+                </Text>
+              )}
             </View>
           )) : (
             <Text style={profileStyles.value}>No bookings yet</Text>
