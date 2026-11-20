@@ -4,36 +4,49 @@ import { Movie, movies as defaultMovies } from '../models/movie';
 const MOVIES_KEY = '@movies_list';
 export const MOVIES_API_URL = 'https://jsonfakery.com/movies/paginated?page=1';
 
-export function normalizeMovie(item) {
-  const showSchedule = new Date(
-    item.showSchedule || Date.now()
-  );
+function toIsoSchedule(value) {
+  if (!value) return new Date().toISOString();
+  if (typeof value.toISOString === 'function') return value.toISOString();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime())
+    ? new Date().toISOString()
+    : parsed.toISOString();
+}
 
-  const cast = item.cast ?? item.casts?.map((actor) => actor.name);
+export function normalizeMovie(item) {
+  const showSchedule = new Date(item.showSchedule || Date.now());
+
+  const cast = item.cast ?? item.casts?.map((actor) => actor.name) ?? [];
   const category = Array.isArray(item.genres)
     ? item.genres.map((genre) => genre.name ?? genre).join(', ')
     : item.category ?? item.genre ?? 'Uncategorized';
+
+  const rawPoster = item.poster ?? item.posterUrl ?? item.poster_url ?? item.poster_path;
   const poster =
-    item.poster && typeof item.poster === 'object'
-      ? item.poster
-      : item.poster || item.poster_url || item.poster_path
-        ? { uri: item.poster || item.poster_url || item.poster_path }
+    typeof rawPoster === 'number' ||
+    (rawPoster && typeof rawPoster === 'object' && rawPoster.uri)
+      ? rawPoster
+      : typeof rawPoster === 'string' && rawPoster.trim()
+        ? { uri: rawPoster.trim() }
         : undefined;
 
   return new Movie(
-    String(item.movieId ?? item.movie_id ?? item.id),
+    String(item.movieId ?? item.movie_id ?? item.id ?? Date.now()),
     item.title ?? item.original_title ?? item.name ?? 'Untitled Movie',
     Number(item.ticketPrice ?? 250),
     showSchedule,
     {
       poster,
-      trailerId: item.trailerId,
-      runtime: item.runtime,
-      releaseDate: item.releaseDate ?? item.release_date,
+      trailerId: item.trailerId ?? '',
+      runtime: item.runtime ?? '2h 00m',
+      releaseDate:
+        item.releaseDate ??
+        item.release_date ??
+        showSchedule.toISOString().slice(0, 10),
       category,
-      rating: item.rating,
+      rating: item.rating ?? 'PG',
       cast,
-      synopsis: item.synopsis ?? item.overview,
+      synopsis: item.synopsis ?? item.overview ?? '',
       apiData: item.apiData ?? item,
     }
   );
@@ -44,16 +57,16 @@ export async function saveMovies(movieList) {
     movieId: movie.movieId,
     title: movie.title,
     ticketPrice: movie.ticketPrice,
-    showSchedule: movie.showSchedule.toISOString(),
+    showSchedule: toIsoSchedule(movie.showSchedule),
     poster: movie.poster,
-    trailerId: movie.trailerId,
-    runtime: movie.runtime,
+    trailerId: movie.trailerId ?? '',
+    runtime: movie.runtime ?? '2h 00m',
     releaseDate: movie.releaseDate,
     category: movie.category,
     rating: movie.rating,
-    cast: movie.cast,
-    synopsis: movie.synopsis,
-    apiData: movie.apiData,
+    cast: movie.cast ?? [],
+    synopsis: movie.synopsis ?? '',
+    apiData: movie.apiData ?? null,
   }));
 
   await AsyncStorage.setItem(MOVIES_KEY, JSON.stringify(serialized));

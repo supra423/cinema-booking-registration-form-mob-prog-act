@@ -64,6 +64,13 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="add-movie"
+        options={{
+          title: 'Add Movie',
+          tabBarIcon: () => <AdminTabIcon label="+" />,
+        }}
+      />
+      <Tabs.Screen
         name="booking"
         options={{
           title: 'Bookings',
