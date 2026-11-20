@@ -55,7 +55,11 @@ export default function LoginScreen() {
 
         await AsyncStorage.setItem('@active_user', JSON.stringify(activeUser));
 
-        const targetPath = params?.movieId ? '/ViewMovie' : '/(tabs)';
+        const targetPath = params?.movieId
+          ? (params?.cinemaId && params?.schedule
+              ? '/TicketSelectionScreen'
+              : '/ViewMovie')
+          : '/(tabs)';
 
         Alert.alert(
           'Success',
@@ -68,6 +72,11 @@ export default function LoginScreen() {
                   pathname: targetPath,
                   params: {
                     movieId: params?.movieId ?? '',
+                    cinemaId: params?.cinemaId ?? '',
+                    schedule: params?.schedule ?? '',
+                    ticketPrice: params?.ticketPrice ?? '',
+                    quantity: params?.quantity ?? '',
+                    selectedSeats: params?.selectedSeats ?? '',
                     user: JSON.stringify(activeUser),
                   },
                 });
