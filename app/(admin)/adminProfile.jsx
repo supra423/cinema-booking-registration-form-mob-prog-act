@@ -95,7 +95,8 @@ export default function AdminProfile() {
         style: "destructive",
         onPress: async () => {
           await AsyncStorage.removeItem("@active_user");
-          router.replace("/adminLoginScreen");
+          router.dismissAll();
+          router.replace("/LoginScreen");
         },
       },
     ]);

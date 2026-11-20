@@ -12,7 +12,8 @@ export default function Header({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      AsyncStorage.getItem('@active_user').then((user) => {
+      AsyncStorage.getItem('@active_user').then((rawUser) => {
+        const user = rawUser ? JSON.parse(rawUser) : null;
         setIsLoggedIn(Boolean(user));
       });
     }, [])
@@ -20,10 +21,9 @@ export default function Header({ navigation }) {
 
   const handleLogout = async () => {
     try {
-      // 1. Remove user session from storage
       await AsyncStorage.removeItem('@active_user');
+      setIsLoggedIn(false);
 
-      // 2. Show the popup alert FIRST
       Alert.alert(
         'Logged Out',
         'You are now viewing as a Guest.',
@@ -31,11 +31,8 @@ export default function Header({ navigation }) {
           {
             text: 'OK',
             onPress: () => {
-              // 3. Reset local header state
-              setIsLoggedIn(false);
-
-              // 4. Navigate/Reload index.jsx in Guest mode
-              router.replace('/');
+              router.dismissAll();
+              router.replace('/LoginScreen');
             },
           },
         ],
