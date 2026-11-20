@@ -50,8 +50,8 @@ export default function AdminMovies() {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Action');
   const [rating, setRating] = useState('PG-13');
+  const [ticketPrice, setTicketPrice] = useState('250');
 
-  // Category dropdown state (matching RegisterScreen)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('Action');
 
@@ -86,12 +86,13 @@ export default function AdminMovies() {
     }, [loadAdminMovies])
   );
 
-  const resetForm = () => {
+  const resetEditForm = () => {
     setEditingMovieId(null);
     setTitle('');
     setCategory('Action');
     setSearchQuery('Action');
     setRating('PG-13');
+    setTicketPrice('250');
     setIsDropdownOpen(false);
   };
 
@@ -107,7 +108,20 @@ export default function AdminMovies() {
     setIsDropdownOpen(false);
   };
 
-  const handleSaveMovie = async () => {
+  const handleStartEdit = (movie) => {
+    const currentCategory = movie.category || 'Action';
+    setEditingMovieId(String(movie.movieId));
+    setTitle(movie.title || '');
+    setCategory(currentCategory);
+    setSearchQuery(currentCategory);
+    setRating(movie.rating || 'PG-13');
+    setTicketPrice(String(movie.ticketPrice ?? 250));
+    setIsDropdownOpen(false);
+  };
+
+  const handleUpdateMovie = async () => {
+    if (!editingMovieId) return;
+
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       Alert.alert('Missing title', 'Please enter a movie title.');
@@ -118,7 +132,7 @@ export default function AdminMovies() {
     const isDuplicate = movies.some(
       (m) =>
         m.title?.trim().toLowerCase() === normalizedTitle &&
-        String(m.movieId) !== String(editingMovieId ?? '')
+        String(m.movieId) !== String(editingMovieId)
     );
 
     if (isDuplicate) {
@@ -130,61 +144,32 @@ export default function AdminMovies() {
     }
 
     const finalCategory = (category || searchQuery).trim() || 'Action';
+    const parsedPrice = Number(ticketPrice);
 
     try {
       setIsDropdownOpen(false);
+      const updated = movies.map((m) =>
+        String(m.movieId) === String(editingMovieId)
+          ? {
+              ...m,
+              title: trimmedTitle,
+              category: finalCategory,
+              rating: rating.trim() || 'PG-13',
+              ticketPrice:
+                Number.isFinite(parsedPrice) && parsedPrice > 0
+                  ? parsedPrice
+                  : (m.ticketPrice ?? 250),
+              showSchedule: m.showSchedule || new Date().toISOString(),
+            }
+          : m
+      );
 
-      if (editingMovieId) {
-        const updated = movies.map((m) =>
-          String(m.movieId) === String(editingMovieId)
-            ? {
-                ...m,
-                title: trimmedTitle,
-                category: finalCategory,
-                rating: rating.trim() || 'PG-13',
-                showSchedule: m.showSchedule || new Date().toISOString(),
-                ticketPrice: m.ticketPrice ?? 250,
-              }
-            : m
-        );
-        setMovies(updated);
-        await saveMovies(updated);
-        resetForm();
-      } else {
-        const nowIso = new Date().toISOString();
-        const newMovie = {
-          movieId: String(Date.now()),
-          title: trimmedTitle,
-          category: finalCategory,
-          rating: rating.trim() || 'PG-13',
-          ticketPrice: 250,
-          showSchedule: nowIso,
-          releaseDate: nowIso.slice(0, 10),
-          runtime: '2h 00m',
-          trailerId: '',
-          synopsis: 'Added from local Admin dashboard.',
-          cast: [],
-          poster: require('../../assets/dummy-img.png'),
-        };
-
-        const updated = [newMovie, ...movies];
-        setMovies(updated);
-        await saveMovies(updated);
-        resetForm();
-      }
+      setMovies(updated);
+      await saveMovies(updated);
+      resetEditForm();
     } catch (error) {
-      Alert.alert('Save Error', error?.message || 'Could not save movie.');
+      Alert.alert('Update Error', error?.message || 'Could not update movie.');
     }
-  };
-
-  const handleStartEdit = (movie) => {
-    const currentCategory = movie.category || 'Action';
-    setEditingMovieId(String(movie.movieId));
-    setTitle(movie.title || '');
-    setCategory(currentCategory);
-    setSearchQuery(currentCategory);
-    setRating(movie.rating || 'PG-13');
-    setIsDropdownOpen(false);
   };
 
   const handleDeleteMovie = (movieId) => {
@@ -200,7 +185,7 @@ export default function AdminMovies() {
           setMovies(updated);
           await saveMovies(updated);
           if (String(editingMovieId) === String(movieId)) {
-            resetForm();
+            resetEditForm();
           }
         },
       },
@@ -216,82 +201,87 @@ export default function AdminMovies() {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Admin Dashboard</Text>
 
-      <View style={styles.form}>
-        <Text style={styles.formHeader}>
-          {editingMovieId ? 'Edit Movie Details' : 'Add New Movie'}
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Movie title"
-          placeholderTextColor="#888"
-          value={title}
-          onChangeText={setTitle}
-        />
+      {editingMovieId && (
+        <View style={styles.form}>
+          <Text style={styles.formHeader}>Edit Movie Details</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Movie title"
+            placeholderTextColor="#888"
+            value={title}
+            onChangeText={setTitle}
+          />
 
-        <View style={styles.rowInputs}>
-          <View style={{ flex: 1, zIndex: 1000 }}>
+          <View style={styles.rowInputs}>
+            <View style={{ flex: 1, zIndex: 1000 }}>
+              <TextInput
+                style={styles.input}
+                placeholder="Type or select a category"
+                placeholderTextColor="#888"
+                value={searchQuery}
+                onChangeText={handleCategorySearch}
+                onFocus={() => setIsDropdownOpen(true)}
+              />
+
+              {isDropdownOpen && (
+                <View style={[RegisterScreenStyles.dropdownContainer, styles.dropdownOverride]}>
+                  <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 150 }}>
+                    {filteredCategories.length > 0 ? (
+                      filteredCategories.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={RegisterScreenStyles.dropdownItem}
+                          onPress={() => handleSelectCategory(item)}
+                        >
+                          <Text style={RegisterScreenStyles.itemText}>{item}</Text>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <TouchableOpacity
+                        style={RegisterScreenStyles.dropdownItem}
+                        onPress={() => handleSelectCategory(`Others (${searchQuery})`)}
+                      >
+                        <Text style={RegisterScreenStyles.othersText}>
+                          Others (Use: "{searchQuery}")
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+
             <TextInput
-              style={styles.input}
-              placeholder="Type or select a category"
+              style={[styles.input, { width: 90 }]}
+              placeholder="Rating"
               placeholderTextColor="#888"
-              value={searchQuery}
-              onChangeText={handleCategorySearch}
-              onFocus={() => setIsDropdownOpen(true)}
+              value={rating}
+              onChangeText={setRating}
             />
 
-            {isDropdownOpen && (
-              <View style={[RegisterScreenStyles.dropdownContainer, styles.dropdownOverride]}>
-                <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 150 }}>
-                  {filteredCategories.length > 0 ? (
-                    filteredCategories.map((item, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={RegisterScreenStyles.dropdownItem}
-                        onPress={() => handleSelectCategory(item)}
-                      >
-                        <Text style={RegisterScreenStyles.itemText}>{item}</Text>
-                      </TouchableOpacity>
-                    ))
-                  ) : (
-                    <TouchableOpacity
-                      style={RegisterScreenStyles.dropdownItem}
-                      onPress={() => handleSelectCategory(`Others (${searchQuery})`)}
-                    >
-                      <Text style={RegisterScreenStyles.othersText}>
-                        Others (Use: "{searchQuery}")
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </ScrollView>
-              </View>
-            )}
+            <TextInput
+              style={[styles.input, { width: 85 }]}
+              placeholder="₱250"
+              placeholderTextColor="#888"
+              keyboardType="numeric"
+              value={ticketPrice}
+              onChangeText={setTicketPrice}
+            />
           </View>
 
-          <TextInput
-            style={[styles.input, { width: 100 }]}
-            placeholder="Rating"
-            placeholderTextColor="#888"
-            value={rating}
-            onChangeText={setRating}
-          />
-        </View>
-
-        <View style={styles.rowInputs}>
-          <Pressable
-            style={[styles.addBtn, { flex: 1 }]}
-            onPress={handleSaveMovie}
-          >
-            <Text style={styles.btnText}>
-              {editingMovieId ? 'Save Changes' : '+ Add Movie'}
-            </Text>
-          </Pressable>
-          {editingMovieId && (
-            <Pressable style={styles.cancelBtn} onPress={resetForm}>
+          <View style={styles.rowInputs}>
+            <Pressable
+              style={[styles.saveBtn, { flex: 1 }]}
+              onPress={handleUpdateMovie}
+            >
+              <Text style={styles.btnText}>Save Changes</Text>
+            </Pressable>
+            <Pressable style={styles.cancelBtn} onPress={resetEditForm}>
               <Text style={styles.btnText}>Cancel</Text>
             </Pressable>
-          )}
+          </View>
         </View>
-      </View>
+      )}
 
       {loading ? (
         <View style={styles.loading}>
@@ -374,8 +364,8 @@ const styles = StyleSheet.create({
     width: '100%',
     zIndex: 2000,
   },
-  addBtn: {
-    backgroundColor: '#D62828',
+  saveBtn: {
+    backgroundColor: '#2563EB',
     padding: 12,
     borderRadius: 6,
     alignItems: 'center',
