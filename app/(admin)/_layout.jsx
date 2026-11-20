@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Redirect, Tabs } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { Redirect, Tabs, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,15 +16,28 @@ export default function AdminLayout() {
   const insets = useSafeAreaInsets();
   const [status, setStatus] = useState('loading'); // 'loading' | 'admin' | 'denied'
 
-  useEffect(() => {
-    AsyncStorage.getItem('@active_user').then((raw) => {
-      const parsed = raw ? JSON.parse(raw) : null;
-      setStatus(parsed?.role === 'admin' ? 'admin' : 'denied');
-    });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      AsyncStorage.getItem('@active_user')
+        .then((raw) => {
+          if (!active) return;
+          const parsed = raw ? JSON.parse(raw) : null;
+          setStatus(parsed?.role === 'admin' ? 'admin' : 'denied');
+        })
+        .catch(() => {
+          if (active) setStatus('denied');
+        });
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   if (status === 'loading') return null;
-  if (status === 'denied') return <Redirect href="/(tabs)" />;
+  if (status === 'denied') return <Redirect href="/LoginScreen" />;
 
   return (
     <Tabs

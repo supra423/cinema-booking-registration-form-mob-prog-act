@@ -194,6 +194,7 @@ export default function AdminMovies() {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('@active_user');
+    router.dismissAll();
     router.replace('/LoginScreen');
   };
 

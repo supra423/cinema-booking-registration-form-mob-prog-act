@@ -72,6 +72,7 @@ export default function Profile() {
         style: "destructive",
         onPress: async () => {
           await AsyncStorage.removeItem("@active_user");
+          router.dismissAll();
           router.replace("/LoginScreen");
         },
       },
