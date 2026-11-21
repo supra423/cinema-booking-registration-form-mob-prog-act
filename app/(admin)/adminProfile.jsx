@@ -130,7 +130,7 @@ export default function AdminProfile() {
             source={
               adminUser.profileImage
                 ? { uri: adminUser.profileImage }
-                : require("../../assets/dummy-img.png")
+                : require("../../assets/def-pfp.jpg")
             }
             style={adminProfileStyles.avatar}
           />

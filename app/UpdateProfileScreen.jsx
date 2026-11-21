@@ -124,7 +124,7 @@ export default function UpdateProfileScreen() {
               source={
                 profileImage
                   ? { uri: profileImage }
-                  : require("../assets/dummy-img.png")
+                  : require("../assets/def-pfp.jpg")
               }
               style={{
                 width: 120,

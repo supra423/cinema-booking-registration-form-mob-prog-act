@@ -109,7 +109,7 @@ export default function Profile() {
                     source={
                         user.profileImage
                         ? { uri: user.profileImage }
-                        : require("../../assets/dummy-img.png")
+                        : require("../../assets/def-pfp.jpg")
                     }
                     style={profileStyles.avatar}
                     />
