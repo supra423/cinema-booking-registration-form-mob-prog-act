@@ -13,27 +13,55 @@ function toIsoSchedule(value) {
     : parsed.toISOString();
 }
 
-export function normalizeMovie(item) {
-  const showSchedule = new Date(item.showSchedule || Date.now());
+function sanitizePoster(rawPoster) {
+  if (typeof rawPoster === 'number') {
+    return rawPoster;
+  }
 
-  const cast = item.cast ?? item.casts?.map((actor) => actor.name) ?? [];
+  if (rawPoster && typeof rawPoster === 'object' && typeof rawPoster.uri === 'string') {
+    const uri = rawPoster.uri.trim();
+    // Skip huge inline data URIs that can bloat SQLite rows
+    if (!uri || uri.startsWith('data:image')) return undefined;
+    return { uri };
+  }
+
+  if (typeof rawPoster === 'string') {
+    const trimmed = rawPoster.trim();
+    if (!trimmed || trimmed.startsWith('data:image')) return undefined;
+    return { uri: trimmed };
+  }
+
+  return undefined;
+}
+
+export function normalizeMovie(item) {
+  if (!item || typeof item !== 'object') {
+    return new Movie(String(Date.now()), 'Untitled Movie', 250, new Date());
+  }
+
+  const showSchedule = new Date(item.showSchedule || Date.now());
+  const cast = Array.isArray(item.cast)
+    ? item.cast
+    : Array.isArray(item.casts)
+      ? item.casts.map((actor) => actor?.name ?? actor).filter(Boolean)
+      : [];
+
   const category = Array.isArray(item.genres)
-    ? item.genres.map((genre) => genre.name ?? genre).join(', ')
+    ? item.genres.map((genre) => genre?.name ?? genre).filter(Boolean).join(', ')
     : item.category ?? item.genre ?? 'Uncategorized';
 
-  const rawPoster = item.poster ?? item.posterUrl ?? item.poster_url ?? item.poster_path;
-  const poster =
-    typeof rawPoster === 'number' ||
-    (rawPoster && typeof rawPoster === 'object' && rawPoster.uri)
-      ? rawPoster
-      : typeof rawPoster === 'string' && rawPoster.trim()
-        ? { uri: rawPoster.trim() }
-        : undefined;
+  const poster = sanitizePoster(
+    item.poster ?? item.posterUrl ?? item.poster_url ?? item.poster_path
+  );
+
+  const parsedPrice = Number(item.ticketPrice ?? 250);
+  const ticketPrice =
+    Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 250;
 
   return new Movie(
     String(item.movieId ?? item.movie_id ?? item.id ?? Date.now()),
     item.title ?? item.original_title ?? item.name ?? 'Untitled Movie',
-    Number(item.ticketPrice ?? 250),
+    ticketPrice,
     showSchedule,
     {
       poster,
@@ -46,40 +74,53 @@ export function normalizeMovie(item) {
       category,
       rating: item.rating ?? 'PG',
       cast,
-      synopsis: item.synopsis ?? item.overview ?? '',
-      apiData: item.apiData ?? item,
+      synopsis: typeof item.synopsis === 'string'
+        ? item.synopsis
+        : typeof item.overview === 'string'
+          ? item.overview
+          : '',
     }
   );
 }
 
 export async function saveMovies(movieList) {
-  const serialized = movieList.map((movie) => ({
-    movieId: movie.movieId,
+  const list = Array.isArray(movieList) ? movieList : [];
+  const serialized = list.map((movie) => ({
+    movieId: String(movie.movieId),
     title: movie.title,
-    ticketPrice: movie.ticketPrice,
+    ticketPrice: Number(movie.ticketPrice) > 0 ? Number(movie.ticketPrice) : 250,
     showSchedule: toIsoSchedule(movie.showSchedule),
-    poster: movie.poster,
+    poster: sanitizePoster(movie.poster),
     trailerId: movie.trailerId ?? '',
     runtime: movie.runtime ?? '2h 00m',
     releaseDate: movie.releaseDate,
     category: movie.category,
     rating: movie.rating,
-    cast: movie.cast ?? [],
+    cast: Array.isArray(movie.cast) ? movie.cast : [],
     synopsis: movie.synopsis ?? '',
-    apiData: movie.apiData ?? null,
   }));
 
   await AsyncStorage.setItem(MOVIES_KEY, JSON.stringify(serialized));
 }
 
 export async function loadMovies() {
-  const stored = await AsyncStorage.getItem(MOVIES_KEY);
+  try {
+    const stored = await AsyncStorage.getItem(MOVIES_KEY);
+    if (!stored) {
+      return defaultMovies;
+    }
 
-  if (!stored) {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed.map(normalizeMovie) : defaultMovies;
+  } catch (error) {
+    console.warn('Failed to load @movies_list, resetting corrupted/oversized entry:', error);
+    try {
+      await AsyncStorage.removeItem(MOVIES_KEY);
+    } catch (_) {
+      // ignore cleanup error
+    }
     return defaultMovies;
   }
-
-  return JSON.parse(stored).map(normalizeMovie);
 }
 
 export async function fetchMoviesFromApi() {
@@ -90,7 +131,7 @@ export async function fetchMoviesFromApi() {
   }
 
   const payload = await response.json();
-  const apiMovies = Array.isArray(payload.data) ? payload.data : [];
+  const apiMovies = Array.isArray(payload?.data) ? payload.data : [];
 
   return apiMovies.filter((item) => !item.adult).map(normalizeMovie);
 }

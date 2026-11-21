@@ -5,10 +5,12 @@ import {
   Text,
   TextInput,
   View,
-  TouchableOpacity,  Image,
+  TouchableOpacity,
+  Image,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import Button from "../src/components/Button";
 import { LoginScreenStyles } from "../src/Styles";
 import * as ImagePicker from "expo-image-picker";
@@ -16,33 +18,33 @@ import * as ImagePicker from "expo-image-picker";
 export default function UpdateProfileScreen() {
   const [user, setUser] = useState(null);
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState("");
   const [favoriteMovieCategory, setFavoriteMovieCategory] = useState("");
   const [profileImage, setProfileImage] = useState(null);
 
+  const isAdmin = user?.role === "admin";
+
   const chooseProfileImage = async () => {
-  const permission =
-    await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-  if (!permission.granted) {
-    Alert.alert("Permission required", "Please allow photo access.");
-    return;
-  }
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Please allow photo access.");
+      return;
+    }
 
- 
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ["images"],
-    allowsEditing: true,
-    aspect: [1, 1],
-    quality: 0.8,
-  });
-
-  if (!result.canceled) {
-    setProfileImage(result.assets[0].uri);
-  }
-};
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -53,8 +55,9 @@ export default function UpdateProfileScreen() {
 
         setUser(activeUser);
         setName(activeUser.name || "");
+        setPassword(activeUser.password || "");
         setEmail(activeUser.email || "");
-        setAge(String(activeUser.age || ""));
+        setAge(activeUser.age ? String(activeUser.age) : "");
         setFavoriteMovieCategory(activeUser.favoriteMovieCategory || "");
         setProfileImage(activeUser.profileImage || null);
       }
@@ -64,20 +67,43 @@ export default function UpdateProfileScreen() {
   }, []);
 
   const handleUpdate = async () => {
-    if (!user || !name || !email || !age || !favoriteMovieCategory) {
-      Alert.alert("Error", "Please complete all fields.");
-      return;
+    if (!user) return;
+
+    const trimmedName = name.trim();
+    const trimmedPassword = password.trim();
+    const trimmedEmail = email.trim();
+    const trimmedAge = age.trim();
+    const trimmedCategory = favoriteMovieCategory.trim();
+
+    if (isAdmin) {
+      if (!trimmedName || !trimmedPassword) {
+        Alert.alert("Error", "Please complete all fields.");
+        return;
+      }
+    } else {
+      if (!trimmedName || !trimmedEmail || !trimmedAge || !trimmedCategory) {
+        Alert.alert("Error", "Please complete all fields.");
+        return;
+      }
     }
 
     try {
-      const updatedUser = {
-        ...user,
-        name,
-        email,
-        age,
-        favoriteMovieCategory,
-        profileImage,
-      };
+      const previousEmail = user.email;
+      const updatedUser = isAdmin
+        ? {
+            ...user,
+            name: trimmedName,
+            password: trimmedPassword,
+            profileImage,
+          }
+        : {
+            ...user,
+            name: trimmedName,
+            email: trimmedEmail,
+            age: trimmedAge,
+            favoriteMovieCategory: trimmedCategory,
+            profileImage,
+          };
 
       await AsyncStorage.setItem(
         "@active_user",
@@ -88,7 +114,7 @@ export default function UpdateProfileScreen() {
       const usersList = storedUsers ? JSON.parse(storedUsers) : [];
 
       const updatedUsers = usersList.map((existingUser) =>
-        existingUser.email === user.email ? updatedUser : existingUser
+        existingUser.email === previousEmail ? updatedUser : existingUser
       );
 
       await AsyncStorage.setItem(
@@ -96,12 +122,22 @@ export default function UpdateProfileScreen() {
         JSON.stringify(updatedUsers)
       );
 
-      Alert.alert("Success", "Profile updated successfully.", [
-        {
-          text: "OK",
-          onPress: () => router.replace("/(tabs)/profile"),
-        },
-      ]);
+      const destination = isAdmin
+        ? "/(admin)/adminProfile"
+        : "/(tabs)/profile";
+
+      Alert.alert(
+        "Success",
+        isAdmin
+          ? "Admin profile updated successfully."
+          : "Profile updated successfully.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace(destination),
+          },
+        ]
+      );
     } catch (error) {
       Alert.alert("Error", "Could not update profile.");
     }
@@ -115,29 +151,51 @@ export default function UpdateProfileScreen() {
         justifyContent: "center",
         padding: 20,
       }}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={LoginScreenStyles.container}>
-        <Text style={LoginScreenStyles.title}>Update Profile</Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            alignSelf: "flex-start",
+            gap: 6,
+            marginBottom: 14,
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "600" }}>
+            Back
+          </Text>
+        </TouchableOpacity>
 
-        <TouchableOpacity onPress={chooseProfileImage}>
-            <Image
-              source={
-                profileImage
-                  ? { uri: profileImage }
-                  : require("../assets/def-pfp.jpg")
-              }
-              style={{
-                width: 120,
-                height: 120,
-                borderRadius: 60,
-                marginBottom: 12,
-              }}
-            />
+        <Text style={LoginScreenStyles.title}>
+          {isAdmin ? "Update Admin Profile" : "Update Profile"}
+        </Text>
 
-            <Text style={{ color: "#FFFFFF", marginBottom: 20 }}>
-              Change Profile Picture
-            </Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          onPress={chooseProfileImage}
+          style={{ alignItems: "center" }}
+        >
+          <Image
+            source={
+              profileImage
+                ? { uri: profileImage }
+                : require("../assets/def-pfp.jpg")
+            }
+            style={{
+              width: 120,
+              height: 120,
+              borderRadius: 60,
+              marginBottom: 12,
+            }}
+          />
+
+          <Text style={{ color: "#FFFFFF", marginBottom: 20 }}>
+            Change Profile Picture
+          </Text>
+        </TouchableOpacity>
 
         <Text style={LoginScreenStyles.label}>Name</Text>
         <TextInput
@@ -147,34 +205,50 @@ export default function UpdateProfileScreen() {
           placeholder="Enter name"
         />
 
-        <Text style={LoginScreenStyles.label}>Email</Text>
-        <TextInput
-          style={LoginScreenStyles.field}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          placeholder="Enter email"
-        />
+        {isAdmin ? (
+          <>
+            <Text style={LoginScreenStyles.label}>Password</Text>
+            <TextInput
+              style={LoginScreenStyles.field}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              placeholder="Enter password"
+            />
+          </>
+        ) : (
+          <>
+            <Text style={LoginScreenStyles.label}>Email</Text>
+            <TextInput
+              style={LoginScreenStyles.field}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              placeholder="Enter email"
+            />
 
-        <Text style={LoginScreenStyles.label}>Age</Text>
-        <TextInput
-          style={LoginScreenStyles.field}
-          value={age}
-          onChangeText={setAge}
-          keyboardType="numeric"
-          placeholder="Enter age"
-        />
+            <Text style={LoginScreenStyles.label}>Age</Text>
+            <TextInput
+              style={LoginScreenStyles.field}
+              value={age}
+              onChangeText={setAge}
+              keyboardType="numeric"
+              placeholder="Enter age"
+            />
 
-        <Text style={LoginScreenStyles.label}>
-          Favorite Movie Category
-        </Text>
-        <TextInput
-          style={LoginScreenStyles.field}
-          value={favoriteMovieCategory}
-          onChangeText={setFavoriteMovieCategory}
-          placeholder="Enter favorite category"
-        />
+            <Text style={LoginScreenStyles.label}>
+              Favorite Movie Category
+            </Text>
+            <TextInput
+              style={LoginScreenStyles.field}
+              value={favoriteMovieCategory}
+              onChangeText={setFavoriteMovieCategory}
+              placeholder="Enter favorite category"
+            />
+          </>
+        )}
 
         <Button title="Save Changes" onPress={handleUpdate} />
       </View>
