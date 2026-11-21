@@ -173,8 +173,9 @@ export default function TicketSelectionScreen() {
           return;
         }
 
+        const bookingId = `${Date.now()}-${movie.movieId}`;
         bookings.unshift({
-          bookingId: `${Date.now()}-${movie.movieId}`,
+          bookingId,
           userEmail: user.email,
           movieId: movie.movieId,
           movieTitle: movie.title,
@@ -195,8 +196,12 @@ export default function TicketSelectionScreen() {
           `Thank you, ${user.name}! You booked ${quantity} ticket(s) for "${movie.title}" at ${cinemaId}. Seat${quantity === 1 ? '' : 's'}: ${selectedSeats.join(', ')}. Total: ₱${total}.`,
           [
             {
-              text: 'OK',
-              onPress: () => router.replace('/(tabs)'), // Navigate to Home / ShowingScreen
+              text: 'Choose Payment',
+              onPress: () =>
+                router.replace({
+                  pathname: '/PaymentScreen',
+                  params: { bookingId },
+                }),
             },
           ]
         );

@@ -40,6 +40,10 @@ export default function RootLayout() {
         name="TicketSelectionScreen" 
         options={{ title: 'Select Tickets' }} 
       />
+      <Stack.Screen
+        name="PaymentScreen"
+        options={{ title: 'Payment' }}
+      />
         <Stack.Screen
           name="ChangePasswordScreen"
           options={{ title: 'Change Password' }}
