@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Text,
     View,
@@ -8,10 +8,99 @@ import {
     useWindowDimensions
 } from 'react-native';
 import { ShowingScreenStyles } from '../Styles';
+import { cinemas, loadCinemas } from '../models/cinema';
+import { getShowtime } from '../models/showtimes';
+import { loadShowtimes } from '../services/showtimeStorage';
+
+function formatFirstSchedule(scheduleValue, movie) {
+    if (scheduleValue) {
+        const parsed = new Date(scheduleValue);
+        if (!Number.isNaN(parsed.getTime())) {
+            return parsed.toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            });
+        }
+        return String(scheduleValue);
+    }
+
+    if (typeof movie?.getFormattedDate === 'function') {
+        return movie.getFormattedDate();
+    }
+
+    return 'Showing Today';
+}
+
+function getEarliestScheduleForMovie(movie, customShowtimes, cinemaList) {
+    const movieIdStr = String(movie?.movieId ?? '').trim();
+    const candidateTimes = [];
+
+    // 1. Custom admin showtimes for this movie
+    (Array.isArray(customShowtimes) ? customShowtimes : []).forEach((item) => {
+        if (String(item?.movieId ?? '').trim() === movieIdStr && item?.schedule) {
+            candidateTimes.push(item.schedule);
+        }
+    });
+
+    // 2. Default showtimes from movie.showSchedule or cinema model schedules
+    if (Array.isArray(movie?.showSchedule)) {
+        candidateTimes.push(...movie.showSchedule);
+    }
+
+    const activeCinemas = Array.isArray(cinemaList) && cinemaList.length > 0 ? cinemaList : cinemas;
+    activeCinemas.forEach((cinema) => {
+        const cinemaIdStr = String(cinema?.cinemaId ?? '').trim();
+        if (!cinemaIdStr || !movieIdStr) return;
+        const scheduleObj = getShowtime(movieIdStr, cinemaIdStr, movie?.showSchedule);
+        if (Array.isArray(scheduleObj?.schedules)) {
+            candidateTimes.push(...scheduleObj.schedules);
+        }
+    });
+
+    // Sort chronologically so the very first screening comes first
+    const validTimestamps = candidateTimes
+        .map((val) => ({ raw: val, ms: new Date(val).getTime() }))
+        .filter((entry) => !Number.isNaN(entry.ms))
+        .sort((a, b) => a.ms - b.ms);
+
+    if (validTimestamps.length > 0) {
+        return validTimestamps[0].raw;
+    }
+
+    const firstNonEmptyString = candidateTimes.find(
+        (val) => typeof val === 'string' && val.trim().length > 0
+    );
+    return firstNonEmptyString || null;
+}
 
 export default function ShowingContent({ onMoviePress, currentUser, movies = [] }) {
     const { width } = useWindowDimensions();
     const center_first_and_last_movies = width * -0.14;
+
+    const [customShowtimes, setCustomShowtimes] = useState([]);
+    const [cinemaList, setCinemaList] = useState(cinemas);
+
+    useEffect(() => {
+        let active = true;
+        Promise.all([loadShowtimes(), loadCinemas()])
+            .then(([storedShowtimes, storedCinemas]) => {
+                if (!active) return;
+                setCustomShowtimes(Array.isArray(storedShowtimes) ? storedShowtimes : []);
+                if (Array.isArray(storedCinemas) && storedCinemas.length > 0) {
+                    setCinemaList(storedCinemas);
+                }
+            })
+            .catch((err) => {
+                console.error('Error loading schedules for showing content:', err);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [movies]);
 
     return (
         <View style={ShowingScreenStyles.mainContainer}>
@@ -45,15 +134,17 @@ export default function ShowingContent({ onMoviePress, currentUser, movies = [] 
                                 ? { uri: rawPoster.trim() }
                                 : require('../../assets/dummy-img.png');
 
-                    // Safe fallback date formatter if model method is missing
-                    const formattedDate = typeof movie.getFormattedDate === 'function'
-                        ? movie.getFormattedDate()
-                        : 'Showing Today';
+                    const firstSchedule = getEarliestScheduleForMovie(
+                        movie,
+                        customShowtimes,
+                        cinemaList
+                    );
+                    const formattedStartingTime = formatFirstSchedule(firstSchedule, movie);
 
                     return (
                         <View
                             key={movie.movieId || index}
-                            style={[ShowingScreenStyles.showingScreenContainer, {width}]}
+                            style={[ShowingScreenStyles.showingScreenContainer, { width }]}
                         >
                             <View style={ShowingScreenStyles.imageTouchableWrapper}>
                                 <TouchableOpacity
@@ -66,7 +157,8 @@ export default function ShowingContent({ onMoviePress, currentUser, movies = [] 
                                             isFirst || isLast
                                                 ? ShowingScreenStyles.imageEdge
                                                 : ShowingScreenStyles.imageMiddle,
-                                            { width: width, resizeMode: 'contain' }
+                                            { width: width, resizeMode: 'contain' },
+                                            extraStyle
                                         ]}
                                         onError={(e) => console.log('Image loading error:', e.nativeEvent.error)}
                                     />
@@ -82,7 +174,7 @@ export default function ShowingContent({ onMoviePress, currentUser, movies = [] 
                                     Starting price: ₱{movie.ticketPrice}
                                 </Text>
                                 <Text style={{ color: "#aaa", fontSize: 14 }}>
-                                    Showing: {formattedDate}
+                                    Starting Time: {formattedStartingTime}
                                 </Text>
                             </View>
                         </View>
