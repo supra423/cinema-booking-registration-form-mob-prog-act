@@ -1,13 +1,24 @@
+function ensureDate(value) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+  const parsed = value ? new Date(value) : new Date();
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
 export class Movie {
   constructor(movieId, title, ticketPrice, showSchedule, details = {}) {
-	this.movieId = movieId;
+    const scheduleDate = ensureDate(showSchedule);
+
+    this.movieId = movieId;
     this.title = title;
     this.ticketPrice = ticketPrice;
-    this.showSchedule = showSchedule;
+    this.showSchedule = scheduleDate;
     this.poster = details.poster || require('../../assets/dummy-img.png');
     this.trailerId = details.trailerId || 'dQw4w9WgXcQ';
     this.runtime = details.runtime || '2h 00m';
-    this.releaseDate = details.releaseDate || showSchedule.toLocaleDateString('en-US');
+    this.releaseDate =
+      details.releaseDate || scheduleDate.toLocaleDateString('en-US');
     this.category = details.category || 'Uncategorized';
     this.rating = details.rating || 'PG-13';
     this.cast = details.cast || ['Featured Cast'];
@@ -16,7 +27,7 @@ export class Movie {
   }
 
   getFormattedDate() {
-    return this.showSchedule.toLocaleDateString('en-US', {
+    return ensureDate(this.showSchedule).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -26,36 +37,4 @@ export class Movie {
   }
 }
 
-export const movies = [
-  new Movie('0000', 'Movie 0', 100, new Date(2026, 7, 25, 13, 0), {
-    runtime: '2h 10m', category: 'Action', rating: 'PG-13',
-    cast: ['Alex Rivera', 'Jamie Cruz'],
-    synopsis: 'A determined team races against time to protect their city from an unexpected threat.',
-  }),
-  new Movie('0001', 'Movie 1', 101, new Date(2026, 7, 26, 13, 0), {
-    runtime: '1h 48m', category: 'Comedy', rating: 'PG',
-    cast: ['Morgan Lee', 'Taylor Santos'],
-    synopsis: 'An ordinary weekend becomes an unforgettable adventure when two friends take one wrong turn.',
-  }),
-  new Movie('0002', 'Movie 2', 102, new Date(2026, 7, 27, 13, 0), {
-    runtime: '2h 02m', category: 'Thriller', rating: 'R',
-    cast: ['Riley Park', 'Casey Tan'],
-    synopsis: 'A quiet investigation reveals a secret that someone will do anything to keep hidden.',
-  }),
-  new Movie('0003', 'Movie 3', 103, new Date(2026, 7, 28, 13, 0), {
-    runtime: '1h 55m', category: 'Fantasy', rating: 'PG',
-    cast: ['Jordan Wells', 'Sam Flores'],
-    synopsis: 'A young dreamer discovers a doorway to a world that needs one last impossible act of courage.',
-  }),
-  new Movie('0004', 'Movie 4', 104, new Date(2026, 7, 29, 13, 0), {
-    runtime: '2h 20m', category: 'Science Fiction', rating: 'PG-13',
-    cast: ['Avery Kim', 'Drew Morgan'],
-    synopsis: 'When the first signal from beyond Earth arrives, a small crew must decide whether to answer.',
-  }),
-  //PAT: Added more movies to the list
-  new Movie('0005', 'Movie 5', 105, new Date(2026, 7, 30, 13, 0), {
-    runtime: '1h 45m', category: 'Horror', rating: 'R',
-    cast: ['Taylor Brooks', 'Jordan Lee'],
-    synopsis: 'A group of friends must confront their deepest fears when they are trapped in a haunted location.',
-  })
-];
+export const movies = [];

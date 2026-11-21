@@ -95,7 +95,6 @@ export default function AdminProfile() {
         style: "destructive",
         onPress: async () => {
           await AsyncStorage.removeItem("@active_user");
-          router.dismissAll();
           router.replace("/LoginScreen");
         },
       },
@@ -171,16 +170,9 @@ export default function AdminProfile() {
 
           <Pressable
             style={adminProfileStyles.secondaryButton}
-            onPress={() => router.push("/(admin)/bookings")}
+            onPress={() => router.push("/UpdateProfileScreen")}
           >
-            <Text style={adminProfileStyles.secondaryButtonText}>Inspect All Bookings</Text>
-          </Pressable>
-
-          <Pressable
-            style={adminProfileStyles.secondaryButton}
-            onPress={() => router.push("/(tabs)")}
-          >
-            <Text style={adminProfileStyles.secondaryButtonText}>Preview Customer Tabs</Text>
+            <Text style={adminProfileStyles.secondaryButtonText}>Update Admin Profile</Text>
           </Pressable>
         </View>
 
@@ -205,8 +197,10 @@ export default function AdminProfile() {
           )}
         </View>
 
-        <Button title="Change Password" onPress={() => router.push("/ChangePasswordScreen")} />
-        <Button title="Log Out" onPress={confirmLogout} />
+        <View style={{ alignItems: "center", marginTop: 20, gap: 12 }}>
+          <Button title="Change Password" onPress={() => router.push("/ChangePasswordScreen")} />
+          <Button title="Log Out" onPress={confirmLogout} />
+        </View>
 
         <Pressable onPress={resetLocalBookings} style={adminProfileStyles.dangerAction}>
           <Text style={adminProfileStyles.dangerText}>Clear All Local Bookings</Text>
