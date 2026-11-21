@@ -34,8 +34,34 @@ export default function History() {
                     const savedMovies = await AsyncStorage.getItem('@movies_list');
                     if (savedMovies) {
                         const cachedMovies = await loadMovies();
-                        if (active) setMovies(cachedMovies);
-                        return;
+                        try {
+                            const apiMovies = await fetchMoviesFromApi();
+                            const apiById = new Map(apiMovies.map((movie) => [String(movie.movieId), movie]));
+                            const cachedById = new Map(cachedMovies.map((movie) => [String(movie.movieId), movie]));
+                            const mergedApiMovies = apiMovies.map((movie) => {
+                                const cachedMovie = cachedById.get(String(movie.movieId));
+                                return cachedMovie ? {
+                                    ...movie,
+                                    category: cachedMovie.category !== 'Uncategorized' ? cachedMovie.category : movie.category,
+                                    rating: cachedMovie.rating !== 'PG' ? cachedMovie.rating : movie.rating,
+                                    cast: cachedMovie.cast?.length ? cachedMovie.cast : movie.cast,
+                                    synopsis: cachedMovie.synopsis ? cachedMovie.synopsis : movie.synopsis,
+                                    poster: cachedMovie.poster || movie.poster,
+                                    ticketPrice: cachedMovie.ticketPrice || movie.ticketPrice,
+                                } : movie;
+                            });
+                            const localOnlyMovies = cachedMovies.filter((movie) => {
+                                const apiMovie = apiById.get(String(movie.movieId));
+                                return !apiMovie;
+                            });
+                            const mergedMovies = [...mergedApiMovies, ...localOnlyMovies];
+                            await saveMovies(mergedMovies);
+                            if (active) setMovies(mergedMovies);
+                            return;
+                        } catch (error) {
+                            if (active) setMovies(cachedMovies);
+                            return;
+                        }
                     }
 
                     const apiMovies = await fetchMoviesFromApi();
@@ -75,9 +101,21 @@ export default function History() {
             ...(movie.cast || []),
         ].join(' ').toLowerCase();
         const matchesSearch = searchText.includes(searchQuery.trim().toLowerCase());
-        const rating = Number(apiData.vote_average ?? movie.rating ?? 0);
-        const popularity = Number(apiData.popularity ?? 0);
-        const releaseYear = new Date(movie.releaseDate).getFullYear();
+        const rating = Number(
+            apiData.vote_average ??
+            apiData.voteAverage ??
+            movie.voteAverage ??
+            0
+        );
+        const popularity = Number(
+            apiData.popularity ??
+            movie.popularity ??
+            0
+        );
+        const releaseYearMatch = String(movie.releaseDate ?? '').match(/(?:^|\D)(\d{4})(?:\D|$)/);
+        const releaseYear = releaseYearMatch
+            ? Number(releaseYearMatch[1])
+            : new Date(movie.releaseDate).getFullYear();
         const currentYear = new Date().getFullYear();
 
         const matchesCategory =
