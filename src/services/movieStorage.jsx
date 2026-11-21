@@ -57,6 +57,11 @@ export function normalizeMovie(item) {
   const parsedPrice = Number(item.ticketPrice ?? 250);
   const ticketPrice =
     Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 250;
+  const apiData = item.apiData ?? {
+    popularity: item.popularity,
+    vote_average: item.vote_average,
+    original_language: item.original_language,
+  };
 
   return new Movie(
     String(item.movieId ?? item.movie_id ?? item.id ?? Date.now()),
@@ -79,6 +84,9 @@ export function normalizeMovie(item) {
         : typeof item.overview === 'string'
           ? item.overview
           : '',
+      apiData,
+      popularity: item.popularity,
+      voteAverage: item.vote_average,
     }
   );
 }
@@ -98,6 +106,9 @@ export async function saveMovies(movieList) {
     rating: movie.rating,
     cast: Array.isArray(movie.cast) ? movie.cast : [],
     synopsis: movie.synopsis ?? '',
+    apiData: movie.apiData ?? null,
+    popularity: movie.popularity ?? movie.apiData?.popularity ?? null,
+    voteAverage: movie.voteAverage ?? movie.apiData?.vote_average ?? null,
   }));
 
   await AsyncStorage.setItem(MOVIES_KEY, JSON.stringify(serialized));

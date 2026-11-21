@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.supra423.cinemabookingregistrationformmobprogact"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,7 +31,16 @@
       "expo-router",
       "expo-status-bar",
       "expo-maps"
-    ]
-
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "0e42b6cd-f0c8-4954-b23e-ffd8a718d504"
+      }
+    }
   }
 }

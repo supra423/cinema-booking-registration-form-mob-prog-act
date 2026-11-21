@@ -24,6 +24,8 @@ export class Movie {
     this.cast = details.cast || ['Featured Cast'];
     this.synopsis = details.synopsis || 'Movie details will be available soon.';
     this.apiData = details.apiData || null;
+    this.popularity = details.popularity ?? null;
+    this.voteAverage = details.voteAverage ?? null;
   }
 
   getFormattedDate() {
