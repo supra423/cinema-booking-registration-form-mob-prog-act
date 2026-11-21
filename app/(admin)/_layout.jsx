@@ -84,6 +84,13 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="showtimes"
+        options={{
+          title: 'Showtimes',
+          tabBarIcon: () => <AdminTabIcon label="S" />,
+        }}
+      />
+      <Tabs.Screen
         name="booking"
         options={{
           title: 'Bookings',

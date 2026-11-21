@@ -9,13 +9,29 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-// Adjust relative path based on your folder structure (e.g., ../../src/models/movie if inside app/(app)/)
 import { Ionicons } from '@expo/vector-icons';
 import {
   fetchMoviesFromApi,
   loadMovies,
   saveMovies,
 } from '../src/services/movieStorage';
+
+function formatScreeningTime(value) {
+  if (!value) return 'No schedule selected';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return String(value);
+  }
+
+  return parsed.toLocaleString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
 
 export default function TicketSelectionScreen() {
   const router = useRouter();
@@ -71,10 +87,11 @@ export default function TicketSelectionScreen() {
         const storedBookings = await AsyncStorage.getItem('@bookings');
         const bookings = storedBookings ? JSON.parse(storedBookings) : [];
         const occupied = bookings
-          .filter((booking) =>
-            String(booking.movieId) === String(movieId) &&
-            String(booking.cinemaId) === String(cinemaId) &&
-            String(booking.schedule) === String(schedule)
+          .filter(
+            (booking) =>
+              String(booking.movieId) === String(movieId) &&
+              String(booking.cinemaId) === String(cinemaId) &&
+              String(booking.schedule) === String(schedule)
           )
           .flatMap((booking) => booking.seats || []);
         setOccupiedSeats([...new Set(occupied)]);
@@ -108,7 +125,14 @@ export default function TicketSelectionScreen() {
     );
   }
 
-  const price = Number(ticketPrice || 250);
+  const resolvedParamPrice = Number(ticketPrice);
+  const resolvedMoviePrice = Number(movie.ticketPrice);
+  const price =
+    Number.isFinite(resolvedParamPrice) && resolvedParamPrice > 0
+      ? resolvedParamPrice
+      : Number.isFinite(resolvedMoviePrice) && resolvedMoviePrice > 0
+        ? resolvedMoviePrice
+        : 250;
   const total = quantity * price;
 
   const changeQuantity = (nextQuantity) => {
@@ -145,7 +169,6 @@ export default function TicketSelectionScreen() {
     }
 
     try {
-      // Check if an active user exists in local storage
       const activeUser = await AsyncStorage.getItem('@active_user');
 
       if (activeUser) {
@@ -153,10 +176,11 @@ export default function TicketSelectionScreen() {
         const storedBookings = await AsyncStorage.getItem('@bookings');
         const bookings = storedBookings ? JSON.parse(storedBookings) : [];
         const conflictingSeat = bookings
-          .filter((booking) =>
-            String(booking.movieId) === String(movie.movieId) &&
-            String(booking.cinemaId) === String(cinemaId) &&
-            String(booking.schedule) === String(schedule)
+          .filter(
+            (booking) =>
+              String(booking.movieId) === String(movie.movieId) &&
+              String(booking.cinemaId) === String(cinemaId) &&
+              String(booking.schedule) === String(schedule)
           )
           .flatMap((booking) => booking.seats || [])
           .find((seat) => selectedSeats.includes(seat));
@@ -166,9 +190,13 @@ export default function TicketSelectionScreen() {
             'Seat unavailable',
             `Seat ${conflictingSeat} was just booked. Please choose another seat.`
           );
-          setSelectedSeats((current) => current.filter((seat) => seat !== conflictingSeat));
+          setSelectedSeats((current) =>
+            current.filter((seat) => seat !== conflictingSeat)
+          );
           setOccupiedSeats((current) =>
-            current.includes(conflictingSeat) ? current : [...current, conflictingSeat]
+            current.includes(conflictingSeat)
+              ? current
+              : [...current, conflictingSeat]
           );
           return;
         }
@@ -189,8 +217,7 @@ export default function TicketSelectionScreen() {
         });
 
         await AsyncStorage.setItem('@bookings', JSON.stringify(bookings));
-        
-        // User is logged in -> Process booking successfully
+
         Alert.alert(
           'Booking Successful!',
           `Thank you, ${user.name}! You booked ${quantity} ticket(s) for "${movie.title}" at ${cinemaId}. Seat${quantity === 1 ? '' : 's'}: ${selectedSeats.join(', ')}. Total: ₱${total}.`,
@@ -206,7 +233,6 @@ export default function TicketSelectionScreen() {
           ]
         );
       } else {
-        // User is NOT logged in -> Prompt to log in / register first
         Alert.alert(
           'Login Required',
           'Please log in or register an account to complete your booking.',
@@ -237,10 +263,9 @@ export default function TicketSelectionScreen() {
     }
   };
 
-  //KYLA: ADDED BACK BUTTON FUNCTIONALITY
   const handleBackPress = () => {
     router.back();
-  }
+  };
 
   return (
     <ScrollView
@@ -248,17 +273,13 @@ export default function TicketSelectionScreen() {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-
-      {/* KYLA: ADDED BACK BUTTON */}
-            <TouchableOpacity onPress={handleBackPress} style={{ marginBottom: 16 }}>
-              <Ionicons name="arrow-back" size={28} color="#fff" />
-            </TouchableOpacity>
+      <TouchableOpacity onPress={handleBackPress} style={{ marginBottom: 16 }}>
+        <Ionicons name="arrow-back" size={28} color="#fff" />
+      </TouchableOpacity>
 
       <Text style={styles.title}>Select Tickets</Text>
       <Text style={styles.movie}>{movie.title}</Text>
-      <Text style={styles.schedule}>
-        {schedule ? new Date(schedule).toLocaleString() : 'No schedule selected'}
-      </Text>
+      <Text style={styles.schedule}>{formatScreeningTime(schedule)}</Text>
 
       <Text style={styles.label}>Number of tickets</Text>
       <View style={styles.counter}>
@@ -327,7 +348,6 @@ export default function TicketSelectionScreen() {
       <Text style={styles.price}>Price per ticket: ₱{price}</Text>
       <Text style={styles.total}>Total: ₱{total}</Text>
 
-      {/* Button always says "Book Tickets" */}
       <TouchableOpacity style={styles.bookButton} onPress={handleBookTickets}>
         <Text style={styles.bookButtonText}>Book Tickets</Text>
       </TouchableOpacity>
@@ -372,7 +392,14 @@ const styles = StyleSheet.create({
   seatText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
   seatTextMuted: { color: '#9CA3AF' },
   seatTextSelected: { color: '#FFFFFF' },
-  control: { width: 48, height: 48, backgroundColor: '#d62828', alignItems: 'center', justifyContent: 'center', borderRadius: 6 },
+  control: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#d62828',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+  },
   controlText: { color: '#fff', fontSize: 28 },
   quantity: { color: '#fff', fontSize: 24, width: 64, textAlign: 'center' },
   price: { color: '#bbb', fontSize: 16, marginTop: 30 },
