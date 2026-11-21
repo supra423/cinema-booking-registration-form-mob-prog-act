@@ -25,7 +25,13 @@ export default function Profile() {
           setSelectedCinema(cinemaData ? JSON.parse(cinemaData) : null);
           const parsedUser = userData ? JSON.parse(userData) : null;
           const userBookings = parsedUser
-            ? storedBookings.filter((booking) => booking.userEmail === parsedUser.email)
+            ? storedBookings.filter(
+                (booking) =>
+                  (parsedUser.userId && booking.userId
+                    ? String(booking.userId) === String(parsedUser.userId)
+                    : String(booking.userEmail).trim().toLowerCase() ===
+                      String(parsedUser.email).trim().toLowerCase())
+              )
             : [];
           setBookingCount(userBookings.length);
           setRecentBookings(userBookings.slice(0, 3));
