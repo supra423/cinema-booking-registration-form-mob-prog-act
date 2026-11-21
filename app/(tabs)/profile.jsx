@@ -166,6 +166,28 @@ export default function Profile() {
               <Text style={profileStyles.activityMeta}>
                 {booking.quantity} ticket(s) | ₱{booking.total}
               </Text>
+              <Text style={profileStyles.activityMeta}>
+                Payment: {booking.paymentMethod === "in_person"
+                  ? "In person payment (pending...)"
+                  : booking.paymentMethod === "cashless"
+                    ? "Cashless"
+                    : "undefined"}
+              </Text>
+              {!["in_person", "cashless"].includes(booking.paymentMethod) && (
+                <Pressable
+                  style={profileStyles.secondaryButton}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/PaymentScreen",
+                      params: { bookingId: String(booking.bookingId) },
+                    })
+                  }
+                >
+                  <Text style={profileStyles.secondaryButtonText}>
+                    Choose Payment Method
+                  </Text>
+                </Pressable>
+              )}
               {booking.seats?.length > 0 && (
                 <Text style={profileStyles.activityMeta}>
                   Seats: {booking.seats.join(', ')}
