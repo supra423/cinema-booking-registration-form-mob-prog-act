@@ -89,15 +89,33 @@ export default function UpdateProfileScreen() {
 
     try {
       const previousEmail = user.email;
+      const stableUserId = user.userId || `user-${Date.now()}`;
+      const storedUsers = await AsyncStorage.getItem("@users_list");
+      const usersList = storedUsers ? JSON.parse(storedUsers) : [];
+      const duplicateEmail = !isAdmin && usersList.some(
+        (existingUser) =>
+          String(existingUser.email).trim().toLowerCase() !==
+            String(previousEmail).trim().toLowerCase() &&
+          String(existingUser.email).trim().toLowerCase() ===
+            trimmedEmail.toLowerCase()
+      );
+
+      if (duplicateEmail) {
+        Alert.alert("Error", "An account with this email already exists.");
+        return;
+      }
+
       const updatedUser = isAdmin
         ? {
             ...user,
+            userId: stableUserId,
             name: trimmedName,
             password: trimmedPassword,
             profileImage,
           }
         : {
             ...user,
+            userId: stableUserId,
             name: trimmedName,
             email: trimmedEmail,
             age: trimmedAge,
@@ -110,17 +128,30 @@ export default function UpdateProfileScreen() {
         JSON.stringify(updatedUser)
       );
 
-      const storedUsers = await AsyncStorage.getItem("@users_list");
-      const usersList = storedUsers ? JSON.parse(storedUsers) : [];
-
       const updatedUsers = usersList.map((existingUser) =>
-        existingUser.email === previousEmail ? updatedUser : existingUser
+        (existingUser.userId && existingUser.userId === stableUserId) ||
+        String(existingUser.email).trim().toLowerCase() ===
+          String(previousEmail).trim().toLowerCase()
+          ? updatedUser
+          : existingUser
       );
 
       await AsyncStorage.setItem(
         "@users_list",
         JSON.stringify(updatedUsers)
       );
+
+      if (!isAdmin && trimmedEmail !== previousEmail) {
+        const storedBookings = await AsyncStorage.getItem("@bookings");
+        const bookings = storedBookings ? JSON.parse(storedBookings) : [];
+        const previousEmailNormalized = String(previousEmail).trim().toLowerCase();
+        const migratedBookings = bookings.map((booking) =>
+          String(booking.userEmail).trim().toLowerCase() === previousEmailNormalized
+            ? { ...booking, userEmail: trimmedEmail, userId: stableUserId }
+            : booking
+        );
+        await AsyncStorage.setItem("@bookings", JSON.stringify(migratedBookings));
+      }
 
       const destination = isAdmin
         ? "/(admin)/adminProfile"

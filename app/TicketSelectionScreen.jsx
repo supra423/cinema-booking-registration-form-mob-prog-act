@@ -204,6 +204,7 @@ export default function TicketSelectionScreen() {
         const bookingId = `${Date.now()}-${movie.movieId}`;
         bookings.unshift({
           bookingId,
+          userId: user.userId || null,
           userEmail: user.email,
           movieId: movie.movieId,
           movieTitle: movie.title,

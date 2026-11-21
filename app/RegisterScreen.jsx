@@ -118,12 +118,27 @@ export default function RegisterScreen() {
     try {
       const existingData = await AsyncStorage.getItem('@users_list');
       const usersList = existingData ? JSON.parse(existingData) : [];
+      const normalizedEmail = form.email.trim().toLowerCase();
+      const emailExists = usersList.some(
+        (existingUser) =>
+          String(existingUser.email).trim().toLowerCase() === normalizedEmail
+      );
 
-      const updatedList = [...usersList, form];
+      if (emailExists) {
+        Alert.alert('Error', 'An account with this email already exists.');
+        return;
+      }
+
+      const newUser = {
+        ...form,
+        email: form.email.trim(),
+        userId: `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      };
+      const updatedList = [...usersList, newUser];
       await AsyncStorage.setItem('@users_list', JSON.stringify(updatedList));
-      await AsyncStorage.setItem('@active_user', JSON.stringify(form));
+      await AsyncStorage.setItem('@active_user', JSON.stringify(newUser));
 
-      setRegisteredUser(form);
+      setRegisteredUser(newUser);
 
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
