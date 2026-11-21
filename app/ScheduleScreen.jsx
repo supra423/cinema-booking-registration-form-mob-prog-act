@@ -149,12 +149,18 @@ export default function ScheduleScreen() {
     }
   });
 
-  const allSlots = Array.from(mergedMap.values()).sort((a, b) => {
-    const timeA = new Date(a.schedule).getTime();
-    const timeB = new Date(b.schedule).getTime();
-    if (Number.isNaN(timeA) || Number.isNaN(timeB)) return 0;
-    return timeA - timeB;
-  });
+  const now = Date.now();
+  const allSlots = Array.from(mergedMap.values())
+    .filter((slot) => {
+      const time = new Date(slot.schedule).getTime();
+      return Number.isNaN(time) || time > now;
+    })
+    .sort((a, b) => {
+      const timeA = new Date(a.schedule).getTime();
+      const timeB = new Date(b.schedule).getTime();
+      if (Number.isNaN(timeA) || Number.isNaN(timeB)) return 0;
+      return timeA - timeB;
+    });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -185,7 +191,7 @@ export default function ScheduleScreen() {
 
         {allSlots.length === 0 ? (
           <Text style={styles.emptyText}>
-            No showtimes available for this cinema yet.
+            No upcoming showtimes available for this cinema yet.
           </Text>
         ) : (
           allSlots.map((slot, index) => (
