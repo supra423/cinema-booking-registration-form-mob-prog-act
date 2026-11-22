@@ -54,7 +54,7 @@ export default function TabsLayout() {
          shadowOffset: { width: 0, height: 4 },
          shadowOpacity: 0.3,
          shadowRadius: 6,
-         paddingBottom: 0, 
+         paddingBottom: 0,
        },
        tabBarItemStyle: {
          height: 64,
@@ -93,9 +93,9 @@ export default function TabsLayout() {
      <Tabs.Screen
        name="movieCatalogue"
        options={{
-         title: "Movie Catalogue",
+         title: "Search Movies",
          tabBarIcon: ({ color }) => (
-           <TabIcon label="M" color={color} />
+           <TabIcon label="S" color={color} />
          ),
        }}
      />
@@ -109,9 +109,9 @@ export default function TabsLayout() {
            <TabIcon label="P" color={color} />
          ),
        }}
-       
+
      />
    </Tabs>
-   
+
  );
 }
