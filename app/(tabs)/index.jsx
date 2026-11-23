@@ -4,6 +4,16 @@ import { useRouter, useFocusEffect } from "expo-router";
 import ShowingContent from '../../src/components/showingContents';
 import { fetchMoviesFromApi, loadMovies, saveMovies } from '../../src/services/movieStorage';
 
+function parseStoredUser(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function HomeTab() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
@@ -11,32 +21,52 @@ export default function HomeTab() {
 
   useFocusEffect(
     useCallback(() => {
-      // 1. Always sync active user session
-      AsyncStorage.getItem('@active_user').then(user => {
-        setCurrentUser(user ? JSON.parse(user) : null);
-      });
+      let active = true;
 
-      // 2. Load from local storage FIRST so the list stays stable and instant
-      loadMovies().then((localMovies) => {
-        if (localMovies && localMovies.length > 0) {
-          setMovies(localMovies);
-        } else {
-          // Fallback to API only if local storage is completely empty
-          fetchMoviesFromApi()
-            .then((apiMovies) => {
-              setMovies(apiMovies);
-              saveMovies(apiMovies);
-            })
-            .catch((err) => console.error('Failed to load API movies:', err));
-        }
-      });
+      AsyncStorage.getItem('@active_user')
+        .then((raw) => {
+          if (!active) return;
+          setCurrentUser(parseStoredUser(raw));
+        })
+        .catch((err) => {
+          console.error('Failed to load active user:', err);
+          if (active) setCurrentUser(null);
+        });
+
+      loadMovies()
+        .then((localMovies) => {
+          if (!active) return;
+          if (Array.isArray(localMovies) && localMovies.length > 0) {
+            setMovies(localMovies);
+            return null;
+          }
+
+          return fetchMoviesFromApi().then((apiMovies) => {
+            if (!active) return null;
+            const safeMovies = Array.isArray(apiMovies) ? apiMovies : [];
+            setMovies(safeMovies);
+            if (safeMovies.length > 0) {
+              saveMovies(safeMovies).catch(() => {});
+            }
+            return safeMovies;
+          });
+        })
+        .catch((err) => {
+          if (err?.name !== 'AbortError') {
+            console.warn('Failed to load movies:', err);
+          }
+        });
+
+      return () => {
+        active = false;
+      };
     }, [])
   );
 
   const handleMoviePress = (movie) => {
     router.push({
       pathname: currentUser ? '/ViewMovie' : '/LoginScreen',
-      params: { movieId: movie.movieId },
+      params: { movieId: movie?.movieId },
     });
   };
 

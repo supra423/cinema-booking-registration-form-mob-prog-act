@@ -30,7 +30,8 @@
       "expo-asset",
       "expo-router",
       "expo-status-bar",
-      "expo-maps"
+      "expo-maps",
+      "expo-font"
     ],
     "extra": {
       "router": {

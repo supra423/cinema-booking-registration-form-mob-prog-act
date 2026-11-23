@@ -6,6 +6,17 @@ import { useFocusEffect, router } from "expo-router";
 import { AdminScreenStyles, TabScreenStyles } from "../../src/Styles";
 import Button from "../../src/components/Button";
 
+const ADMIN_ACCOUNT_KEY = "@admin_account";
+
+function safeParseJson(raw, fallback) {
+  if (!raw || typeof raw !== "string") return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
 export default function AdminProfile() {
   const [adminUser, setAdminUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,28 +31,52 @@ export default function AdminProfile() {
 
   useFocusEffect(
     useCallback(() => {
+      let active = true;
+
       const loadAdminData = async () => {
         try {
-          const [rawUser, rawCinema, rawBookings, rawUsers, rawMovies] = await Promise.all([
-            AsyncStorage.getItem("@active_user"),
-            AsyncStorage.getItem("@selected_cinema"),
-            AsyncStorage.getItem("@bookings"),
-            AsyncStorage.getItem("@users_list"),
-            AsyncStorage.getItem("@movies_list"),
-          ]);
+          const [rawUser, rawAdminAccount, rawCinema, rawBookings, rawUsers, rawMovies] =
+            await Promise.all([
+              AsyncStorage.getItem("@active_user"),
+              AsyncStorage.getItem(ADMIN_ACCOUNT_KEY),
+              AsyncStorage.getItem("@selected_cinema"),
+              AsyncStorage.getItem("@bookings"),
+              AsyncStorage.getItem("@users_list"),
+              AsyncStorage.getItem("@movies_list"),
+            ]);
 
-          const parsedUser = rawUser ? JSON.parse(rawUser) : null;
-          const parsedCinema = rawCinema ? JSON.parse(rawCinema) : null;
-          const parsedBookings = rawBookings ? JSON.parse(rawBookings) : [];
-          const parsedUsers = rawUsers ? JSON.parse(rawUsers) : [];
-          const parsedMovies = rawMovies ? JSON.parse(rawMovies) : [];
+          if (!active) return;
+
+          const parsedUser = safeParseJson(rawUser, null);
+          const parsedAdminAccount = safeParseJson(rawAdminAccount, null);
+          const parsedCinema = safeParseJson(rawCinema, null);
+          const parsedBookings = Array.isArray(safeParseJson(rawBookings, []))
+            ? safeParseJson(rawBookings, [])
+            : [];
+          const parsedUsers = Array.isArray(safeParseJson(rawUsers, []))
+            ? safeParseJson(rawUsers, [])
+            : [];
+          const parsedMovies = Array.isArray(safeParseJson(rawMovies, []))
+            ? safeParseJson(rawMovies, [])
+            : [];
+
+          const resolvedAdmin =
+            parsedUser?.role === "admin"
+              ? { ...parsedAdminAccount, ...parsedUser, role: "admin" }
+              : null;
+
+          if (resolvedAdmin) {
+            await AsyncStorage.setItem(ADMIN_ACCOUNT_KEY, JSON.stringify(resolvedAdmin));
+          }
 
           const totalRevenue = parsedBookings.reduce(
-            (sum, item) => sum + (Number(item.total) || 0),
+            (sum, item) => sum + (Number(item?.total) || 0),
             0
           );
 
-          setAdminUser(parsedUser);
+          if (!active) return;
+
+          setAdminUser(resolvedAdmin);
           setSelectedCinema(parsedCinema);
           setCounts({
             movies: parsedMovies.length,
@@ -53,11 +88,15 @@ export default function AdminProfile() {
         } catch (error) {
           console.error("Error fetching admin profile data:", error);
         } finally {
-          setLoading(false);
+          if (active) setLoading(false);
         }
       };
 
       loadAdminData();
+
+      return () => {
+        active = false;
+      };
     }, [])
   );
 
@@ -133,8 +172,6 @@ export default function AdminProfile() {
             }
             style={adminProfileStyles.avatar}
           />
-          <View style={AdminScreenStyles.badge}>
-          </View>
           <Text style={adminProfileStyles.title}>{adminUser.name}</Text>
           <Text style={adminProfileStyles.email}>{adminUser.email}</Text>
         </View>
@@ -198,7 +235,6 @@ export default function AdminProfile() {
         </View>
 
         <View style={{ alignItems: "center", marginTop: 20, gap: 12 }}>
-          <Button title="Change Password" onPress={() => router.push("/ChangePasswordScreen")} />
           <Button title="Log Out" onPress={confirmLogout} />
         </View>
 
