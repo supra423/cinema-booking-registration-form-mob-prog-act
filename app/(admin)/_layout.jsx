@@ -1,15 +1,23 @@
 import React, { useCallback, useState } from 'react';
 import { Redirect, Tabs, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Clapperboard,
+  PlusCircle,
+  CalendarClock,
+  Ticket,
+  User,
+} from 'lucide-react-native';
 
-function AdminTabIcon({ label }) {
-  return (
-    <Text style={{ color: '#F87171', fontSize: 18, fontWeight: '800' }}>
-      {label}
-    </Text>
-  );
+function parseStoredUser(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 export default function AdminLayout() {
@@ -23,7 +31,7 @@ export default function AdminLayout() {
       AsyncStorage.getItem('@active_user')
         .then((raw) => {
           if (!active) return;
-          const parsed = raw ? JSON.parse(raw) : null;
+          const parsed = parseStoredUser(raw);
           setStatus(parsed?.role === 'admin' ? 'admin' : 'denied');
         })
         .catch(() => {
@@ -48,6 +56,7 @@ export default function AdminLayout() {
           bottom: Math.max(insets.bottom, 12),
           left: 20,
           right: 20,
+          paddingHorizontal: 6,
           elevation: 8,
           backgroundColor: '#1E293B',
           borderRadius: 28,
@@ -56,12 +65,15 @@ export default function AdminLayout() {
           paddingBottom: 0,
         },
         tabBarItemStyle: {
+          flex: 1,
+          minWidth: 0,
           height: 64,
+          paddingHorizontal: 2,
           justifyContent: 'center',
           alignItems: 'center',
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
           marginBottom: 6,
         },
@@ -72,36 +84,66 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Admin Movies',
-          tabBarIcon: () => <AdminTabIcon label="A" />,
+          title: 'Movies',
+          tabBarIcon: ({ focused }) => (
+            <Clapperboard
+              size={21}
+              color="red"
+              strokeWidth={focused ? 2.4 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="add-movie"
         options={{
           title: 'Add Movie',
-          tabBarIcon: () => <AdminTabIcon label="+" />,
+          tabBarIcon: ({ focused }) => (
+            <PlusCircle
+              size={21}
+              color="red"
+              strokeWidth={focused ? 2.4 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="showtimes"
         options={{
           title: 'Showtimes',
-          tabBarIcon: () => <AdminTabIcon label="S" />,
+          tabBarIcon: ({ focused }) => (
+            <CalendarClock
+              size={21}
+              color="red"
+              strokeWidth={focused ? 2.4 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="booking"
         options={{
           title: 'Bookings',
-          tabBarIcon: () => <AdminTabIcon label="B" />,
+          tabBarIcon: ({ focused }) => (
+            <Ticket
+              size={21}
+              color="red"
+              strokeWidth={focused ? 2.4 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="adminProfile"
         options={{
           title: 'Profile',
-          tabBarIcon: () => <AdminTabIcon label="P" />,
+          tabBarIcon: ({ focused }) => (
+            <User
+              size={21}
+              color="red"
+              strokeWidth={focused ? 2.4 : 2}
+            />
+          ),
         }}
       />
     </Tabs>

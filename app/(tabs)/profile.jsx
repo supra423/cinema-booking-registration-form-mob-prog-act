@@ -6,6 +6,18 @@ import { useFocusEffect, router } from "expo-router";
 import { TabScreenStyles } from "../../src/Styles";
 import Button from "../../src/components/Button";
 
+function belongsToUser(booking, targetUser) {
+  if (!booking || !targetUser) return false;
+
+  if (targetUser.userId && booking.userId) {
+    return String(booking.userId) === String(targetUser.userId);
+  }
+
+  const bookingEmail = String(booking.userEmail ?? "").trim().toLowerCase();
+  const targetEmail = String(targetUser.email ?? "").trim().toLowerCase();
+  return Boolean(targetEmail) && bookingEmail === targetEmail;
+}
+
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,17 +33,13 @@ export default function Profile() {
           const cinemaData = await AsyncStorage.getItem("@selected_cinema");
           const bookings = await AsyncStorage.getItem("@bookings");
           const storedBookings = bookings ? JSON.parse(bookings) : [];
-          setUser(userData ? JSON.parse(userData) : null);
-          setSelectedCinema(cinemaData ? JSON.parse(cinemaData) : null);
           const parsedUser = userData ? JSON.parse(userData) : null;
+
+          setUser(parsedUser);
+          setSelectedCinema(cinemaData ? JSON.parse(cinemaData) : null);
+
           const userBookings = parsedUser
-            ? storedBookings.filter(
-                (booking) =>
-                  (parsedUser.userId && booking.userId
-                    ? String(booking.userId) === String(parsedUser.userId)
-                    : String(booking.userEmail).trim().toLowerCase() ===
-                      String(parsedUser.email).trim().toLowerCase())
-              )
+            ? storedBookings.filter((booking) => belongsToUser(booking, parsedUser))
             : [];
           setBookingCount(userBookings.length);
           setRecentBookings(userBookings.slice(0, 3));
@@ -46,25 +54,25 @@ export default function Profile() {
     }, [])
   );
 
-    if (loading) {
-        return (
-            <SafeAreaView style={TabScreenStyles.container}>
-                <View style={TabScreenStyles.centerContent}>
-                    <ActivityIndicator size="large" color="#38BDF8" />
-                </View>
-            </SafeAreaView>
-        );
-    }
+  if (loading) {
+    return (
+      <SafeAreaView style={TabScreenStyles.container}>
+        <View style={TabScreenStyles.centerContent}>
+          <ActivityIndicator size="large" color="#38BDF8" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-    if (!user) {
+  if (!user) {
     return (
       <SafeAreaView style={TabScreenStyles.container}>
         <View style={TabScreenStyles.centerContent}>
           <Text style={TabScreenStyles.titleText}>
             No user is currently logged in.
           </Text>
-          <Button  title="Log In" onPress={() => router.push("/LoginScreen")} />
-          <Button  title="Sign Up" onPress={() => router.push("/RegisterScreen")} />
+          <Button title="Log In" onPress={() => router.push("/LoginScreen")} />
+          <Button title="Sign Up" onPress={() => router.push("/RegisterScreen")} />
         </View>
       </SafeAreaView>
     );
@@ -92,15 +100,28 @@ export default function Profile() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
+          const targetEmail = String(user.email ?? "").trim().toLowerCase();
+
           const storedUsers = await AsyncStorage.getItem("@users_list");
           const users = storedUsers ? JSON.parse(storedUsers) : [];
-          const remainingUsers = users.filter((item) => item.email !== user.email);
+          const remainingUsers = users.filter((item) => {
+            const itemEmail = String(item?.email ?? "").trim().toLowerCase();
+            if (user.userId && item?.userId) {
+              return String(item.userId) !== String(user.userId);
+            }
+            return itemEmail !== targetEmail;
+          });
+
+          const storedBookings = await AsyncStorage.getItem("@bookings");
+          const bookings = storedBookings ? JSON.parse(storedBookings) : [];
+          const remainingBookings = Array.isArray(bookings)
+            ? bookings.filter((booking) => !belongsToUser(booking, user))
+            : [];
 
           await AsyncStorage.setItem("@users_list", JSON.stringify(remainingUsers));
-          await AsyncStorage.multiRemove([
-            "@active_user",
-            "@bookings",
-          ]);
+          await AsyncStorage.setItem("@bookings", JSON.stringify(remainingBookings));
+          await AsyncStorage.removeItem("@active_user");
+          router.dismissAll(); //added to ensure all modals are closed before navigating
           router.replace("/RegisterScreen");
         },
       },
@@ -112,13 +133,13 @@ export default function Profile() {
       <ScrollView contentContainerStyle={profileStyles.content}>
         <View style={profileStyles.header}>
           <Image
-                    source={
-                        user.profileImage
-                        ? { uri: user.profileImage }
-                        : require("../../assets/def-pfp.jpg")
-                    }
-                    style={profileStyles.avatar}
-                    />
+            source={
+              user.profileImage
+                ? { uri: user.profileImage }
+                : require("../../assets/def-pfp.jpg")
+            }
+            style={profileStyles.avatar}
+          />
           <Text style={profileStyles.title}>My Profile</Text>
           <Text style={profileStyles.email}>{user.email}</Text>
           <Text style={profileStyles.role}>{user.role === "admin" ? "ADMIN" : "MEMBER"}</Text>

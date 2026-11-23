@@ -298,12 +298,12 @@ export const AdminScreenStyles = StyleSheet.create({
 
 export const ShowingScreenStyles = StyleSheet.create({
   mainContainer: {
-      flex: 1,
-      backgroundColor: '#101010',
-      paddingBottom: 100, // Extra padding to ensure content is scrollable and not cut off
+    flex: 1,
+    backgroundColor: '#101010',
+    paddingBottom: 100,
   },
   welcomeMessage: {
-    color: '#FFFFFF', //Kyla changed
+    color: '#FFFFFF',
     backgroundColor: '#101010',
     fontSize: 25,
     fontWeight: 'bold',
@@ -317,24 +317,27 @@ export const ShowingScreenStyles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   imageMiddle: {
+    width: '100%',
     height: 450,
     resizeMode: 'cover',
   },
   imageEdge: {
+    width: '100%',
     height: 450,
     resizeMode: 'cover',
-    paddingleft: 100,
   },
   imageTouchable: {
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   imageTouchableWrapper: {
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   scrollView: {
-      backgroundColor: '#ffffff',
+    backgroundColor: '#101010',
   },
   buttonText: {
     color: '#000',

@@ -3,6 +3,7 @@ import { Movie, movies as defaultMovies } from '../models/movie';
 
 const MOVIES_KEY = '@movies_list';
 export const MOVIES_API_URL = 'https://jsonfakery.com/movies/paginated?page=1';
+const API_TIMEOUT_MS = 4000;
 
 function toIsoSchedule(value) {
   if (!value) return new Date().toISOString();
@@ -20,7 +21,6 @@ function sanitizePoster(rawPoster) {
 
   if (rawPoster && typeof rawPoster === 'object' && typeof rawPoster.uri === 'string') {
     const uri = rawPoster.uri.trim();
-    // Skip huge inline data URIs that can bloat SQLite rows
     if (!uri || uri.startsWith('data:image')) return undefined;
     return { uri };
   }
@@ -32,6 +32,33 @@ function sanitizePoster(rawPoster) {
   }
 
   return undefined;
+}
+
+function buildApiData(item) {
+  const existing = item?.apiData && typeof item.apiData === 'object' ? item.apiData : {};
+
+  const popularity = existing.popularity ?? item?.popularity ?? null;
+
+  const voteAverage =
+    existing.vote_average ??
+    existing.voteAverage ??
+    item?.vote_average ??
+    item?.voteAverage ??
+    null;
+
+  const originalLanguage =
+    existing.original_language ??
+    existing.originalLanguage ??
+    item?.original_language ??
+    item?.originalLanguage ??
+    null;
+
+  return {
+    ...existing,
+    popularity,
+    vote_average: voteAverage,
+    original_language: originalLanguage,
+  };
 }
 
 export function normalizeMovie(item) {
@@ -57,11 +84,8 @@ export function normalizeMovie(item) {
   const parsedPrice = Number(item.ticketPrice ?? 250);
   const ticketPrice =
     Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 250;
-  const apiData = item.apiData ?? {
-    popularity: item.popularity,
-    vote_average: item.vote_average,
-    original_language: item.original_language,
-  };
+
+  const apiData = buildApiData(item);
 
   return new Movie(
     String(item.movieId ?? item.movie_id ?? item.id ?? Date.now()),
@@ -79,37 +103,42 @@ export function normalizeMovie(item) {
       category,
       rating: item.rating ?? 'PG',
       cast,
-      synopsis: typeof item.synopsis === 'string'
-        ? item.synopsis
-        : typeof item.overview === 'string'
-          ? item.overview
-          : '',
+      synopsis:
+        typeof item.synopsis === 'string'
+          ? item.synopsis
+          : typeof item.overview === 'string'
+            ? item.overview
+            : '',
       apiData,
-      popularity: item.popularity,
-      voteAverage: item.vote_average,
+      popularity: apiData.popularity,
+      voteAverage: apiData.vote_average,
     }
   );
 }
 
 export async function saveMovies(movieList) {
   const list = Array.isArray(movieList) ? movieList : [];
-  const serialized = list.map((movie) => ({
-    movieId: String(movie.movieId),
-    title: movie.title,
-    ticketPrice: Number(movie.ticketPrice) > 0 ? Number(movie.ticketPrice) : 250,
-    showSchedule: toIsoSchedule(movie.showSchedule),
-    poster: sanitizePoster(movie.poster),
-    trailerId: movie.trailerId ?? '',
-    runtime: movie.runtime ?? '2h 00m',
-    releaseDate: movie.releaseDate,
-    category: movie.category,
-    rating: movie.rating,
-    cast: Array.isArray(movie.cast) ? movie.cast : [],
-    synopsis: movie.synopsis ?? '',
-    apiData: movie.apiData ?? null,
-    popularity: movie.popularity ?? movie.apiData?.popularity ?? null,
-    voteAverage: movie.voteAverage ?? movie.apiData?.vote_average ?? null,
-  }));
+  const serialized = list.map((movie) => {
+    const apiData = buildApiData(movie);
+
+    return {
+      movieId: String(movie.movieId),
+      title: movie.title,
+      ticketPrice: Number(movie.ticketPrice) > 0 ? Number(movie.ticketPrice) : 250,
+      showSchedule: toIsoSchedule(movie.showSchedule),
+      poster: sanitizePoster(movie.poster),
+      trailerId: movie.trailerId ?? '',
+      runtime: movie.runtime ?? '2h 00m',
+      releaseDate: movie.releaseDate,
+      category: movie.category,
+      rating: movie.rating,
+      cast: Array.isArray(movie.cast) ? movie.cast : [],
+      synopsis: movie.synopsis ?? '',
+      apiData,
+      popularity: apiData.popularity,
+      voteAverage: apiData.vote_average,
+    };
+  });
 
   await AsyncStorage.setItem(MOVIES_KEY, JSON.stringify(serialized));
 }
@@ -135,14 +164,21 @@ export async function loadMovies() {
 }
 
 export async function fetchMoviesFromApi() {
-  const response = await fetch(MOVIES_API_URL);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
-  if (!response.ok) {
-    throw new Error(`Movie API request failed: ${response.status}`);
+  try {
+    const response = await fetch(MOVIES_API_URL, { signal: controller.signal });
+
+    if (!response.ok) {
+      throw new Error(`Movie API request failed: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const apiMovies = Array.isArray(payload?.data) ? payload.data : [];
+
+    return apiMovies.filter((item) => !item.adult).map(normalizeMovie);
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const payload = await response.json();
-  const apiMovies = Array.isArray(payload?.data) ? payload.data : [];
-
-  return apiMovies.filter((item) => !item.adult).map(normalizeMovie);
 }

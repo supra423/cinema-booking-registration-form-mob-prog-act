@@ -11,14 +11,20 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Eye, EyeOff } from "lucide-react-native";
 import Button from "../src/components/Button";
 import { LoginScreenStyles } from "../src/Styles";
 import * as ImagePicker from "expo-image-picker";
+
+const ADMIN_ACCOUNT_KEY = "@admin_account";
 
 export default function UpdateProfileScreen() {
   const [user, setUser] = useState(null);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [hidePassword, setHidePassword] = useState(true);
+  const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
   const [email, setEmail] = useState("");
   const [age, setAge] = useState("");
   const [favoriteMovieCategory, setFavoriteMovieCategory] = useState("");
@@ -52,10 +58,14 @@ export default function UpdateProfileScreen() {
 
       if (storedUser) {
         const activeUser = JSON.parse(storedUser);
+        const existingPassword = activeUser.password || "";
 
         setUser(activeUser);
         setName(activeUser.name || "");
-        setPassword(activeUser.password || "");
+        setPassword(existingPassword);
+        setConfirmPassword(activeUser.confirmPassword || existingPassword);
+        setHidePassword(true);
+        setHideConfirmPassword(true);
         setEmail(activeUser.email || "");
         setAge(activeUser.age ? String(activeUser.age) : "");
         setFavoriteMovieCategory(activeUser.favoriteMovieCategory || "");
@@ -71,13 +81,24 @@ export default function UpdateProfileScreen() {
 
     const trimmedName = name.trim();
     const trimmedPassword = password.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
     const trimmedEmail = email.trim();
     const trimmedAge = age.trim();
     const trimmedCategory = favoriteMovieCategory.trim();
 
     if (isAdmin) {
-      if (!trimmedName || !trimmedPassword) {
+      if (!trimmedName || !trimmedPassword || !trimmedConfirmPassword) {
         Alert.alert("Error", "Please complete all fields.");
+        return;
+      }
+
+      if (trimmedPassword.length < 6) {
+        Alert.alert("Weak Password", "Password must be at least 6 characters.");
+        return;
+      }
+
+      if (trimmedPassword !== trimmedConfirmPassword) {
+        Alert.alert("Mismatch", "Password and confirm password do not match.");
         return;
       }
     } else {
@@ -110,8 +131,11 @@ export default function UpdateProfileScreen() {
             ...user,
             userId: stableUserId,
             name: trimmedName,
+            username: trimmedName,
             password: trimmedPassword,
+            confirmPassword: trimmedConfirmPassword,
             profileImage,
+            role: "admin",
           }
         : {
             ...user,
@@ -127,6 +151,13 @@ export default function UpdateProfileScreen() {
         "@active_user",
         JSON.stringify(updatedUser)
       );
+
+      if (isAdmin) {
+        await AsyncStorage.setItem(
+          ADMIN_ACCOUNT_KEY,
+          JSON.stringify(updatedUser)
+        );
+      }
 
       const updatedUsers = usersList.map((existingUser) =>
         (existingUser.userId && existingUser.userId === stableUserId) ||
@@ -239,14 +270,86 @@ export default function UpdateProfileScreen() {
         {isAdmin ? (
           <>
             <Text style={LoginScreenStyles.label}>Password</Text>
-            <TextInput
-              style={LoginScreenStyles.field}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              placeholder="Enter password"
-            />
+            <View
+              style={{
+                width: "90%",
+                maxWidth: 360,
+                alignSelf: "center",
+                justifyContent: "center",
+                marginTop: 6,
+              }}
+            >
+              <TextInput
+                style={[
+                  LoginScreenStyles.field,
+                  { width: "100%", maxWidth: "100%", marginTop: 0, paddingRight: 44 },
+                ]}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={hidePassword}
+                autoCapitalize="none"
+                placeholder="Enter password"
+              />
+              <TouchableOpacity
+                onPress={() => setHidePassword((prev) => !prev)}
+                accessibilityLabel={
+                  hidePassword ? "Show password" : "Hide password"
+                }
+                style={{
+                  position: "absolute",
+                  right: 10,
+                  padding: 6,
+                }}
+              >
+                {hidePassword ? (
+                  <Eye size={22} color="#111111" />
+                ) : (
+                  <EyeOff size={22} color="#111111" />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <Text style={LoginScreenStyles.label}>Confirm Password</Text>
+            <View
+              style={{
+                width: "90%",
+                maxWidth: 360,
+                alignSelf: "center",
+                justifyContent: "center",
+                marginTop: 6,
+              }}
+            >
+              <TextInput
+                style={[
+                  LoginScreenStyles.field,
+                  { width: "100%", maxWidth: "100%", marginTop: 0, paddingRight: 44 },
+                ]}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={hideConfirmPassword}
+                autoCapitalize="none"
+                placeholder="Confirm password"
+              />
+              <TouchableOpacity
+                onPress={() => setHideConfirmPassword((prev) => !prev)}
+                accessibilityLabel={
+                  hideConfirmPassword
+                    ? "Show confirm password"
+                    : "Hide confirm password"
+                }
+                style={{
+                  position: "absolute",
+                  right: 10,
+                  padding: 6,
+                }}
+              >
+                {hideConfirmPassword ? (
+                  <Eye size={22} color="#111111" />
+                ) : (
+                  <EyeOff size={22} color="#111111" />
+                )}
+              </TouchableOpacity>
+            </View>
           </>
         ) : (
           <>
